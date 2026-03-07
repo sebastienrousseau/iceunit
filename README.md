@@ -108,3 +108,8 @@ See [SECURITY.md](SECURITY.md) for the responsible disclosure process and securi
 ## Licence
 
 [MIT](LICENSE) — configurations and scripts are based on field testing on a MacBook Air 2020 (MacBookAir9,1) running CachyOS with kernel 6.19.x.
+
+<p align="center">
+  THE ARCHITECT ᛫ <a href="https://sebastien.sh">Sebastien Rousseau</a><br/>
+  THE ENGINE ᛞ <a href="https://euxis.com">EUXIS</a> ᛫ Enterprise Unified Execution Intelligence System
+</p>

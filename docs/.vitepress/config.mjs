@@ -128,7 +128,7 @@ export default defineConfig({
     // ── Footer ────────────────────────────────────────────────────────────
     footer: {
       message: 'Released under the MIT License.',
-      copyright: 'Copyright © 2024–2026 Sebastien Rousseau'
+      copyright: 'Copyright © 2026 IceUnit (ICU)'
     },
 
     // ── Social links ──────────────────────────────────────────────────────
