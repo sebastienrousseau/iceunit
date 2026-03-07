@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200" fill="none">
+  <!-- MacBook body -->
+  <rect x="40" y="20" width="240" height="145" rx="8" fill="#181825" stroke="#313244" stroke-width="2"/>
+  <!-- Screen bezel -->
+  <rect x="52" y="30" width="216" height="120" rx="4" fill="#11111b"/>
+
+  <!-- Terminal content lines -->
+  <!-- Prompt 1 -->
+  <text x="64" y="58" font-family="monospace" font-size="9" fill="#a6e3a1">❯ sudo bash scripts/01-thermal-setup.sh</text>
+  <text x="64" y="72" font-family="monospace" font-size="9" fill="#6c7086">[INFO] Detecting fan sysfs path...</text>
+  <text x="64" y="84" font-family="monospace" font-size="9" fill="#6c7086">[INFO] Found: APP0001:00</text>
+  <text x="64" y="96" font-family="monospace" font-size="9" fill="#a6e3a1">[ OK ] mbpfan installed and enabled</text>
+  <text x="64" y="108" font-family="monospace" font-size="9" fill="#a6e3a1">[ OK ] Fan ramping: 2963 → 6350 RPM</text>
+  <text x="64" y="120" font-family="monospace" font-size="9" fill="#a6e3a1">[ OK ] Temperature: 96°C → 71°C ↓</text>
+
+  <!-- Blinking cursor -->
+  <rect x="64" y="130" width="6" height="10" rx="1" fill="#a6e3a1" opacity="0.9">
+    <animate attributeName="opacity" values="0.9;0;0.9" dur="1.2s" repeatCount="indefinite"/>
+  </rect>
+
+  <!-- MacBook base -->
+  <path d="M24 165 Q24 178 40 178 H280 Q296 178 296 165" fill="#181825" stroke="#313244" stroke-width="2"/>
+
+  <!-- Apple logo hint -->
+  <circle cx="160" cy="172" r="4" fill="#313244"/>
+
+  <!-- Ambient glow around screen -->
+  <rect x="52" y="30" width="216" height="120" rx="4" fill="url(#glow)" opacity="0.15"/>
+
+  <defs>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#a6e3a1"/>
+      <stop offset="100%" stop-color="#a6e3a1" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+</svg>

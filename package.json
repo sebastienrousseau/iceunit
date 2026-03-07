@@ -1,0 +1,13 @@
+{
+  "name": "cachyos-macbook-intel-2020-docs",
+  "version": "1.0.0",
+  "description": "Documentation site for CachyOS on MacBook Air 2020",
+  "scripts": {
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "docs:preview": "vitepress preview docs"
+  },
+  "devDependencies": {
+    "vitepress": "1.6.3"
+  }
+}

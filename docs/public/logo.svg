@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+  <!-- MacBook outline -->
+  <rect x="6" y="10" width="36" height="22" rx="3" stroke="#a6e3a1" stroke-width="2.5" fill="#1e1e2e"/>
+  <!-- Screen content - CachyOS C -->
+  <text x="24" y="25" text-anchor="middle" font-family="monospace" font-size="13" font-weight="bold" fill="#a6e3a1">C</text>
+  <!-- Base / hinge -->
+  <path d="M3 32 Q3 36 6 36 H42 Q45 36 45 32" stroke="#a6e3a1" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+</svg>

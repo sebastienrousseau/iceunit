@@ -1,0 +1,94 @@
+/**
+ * CachyOS × Catppuccin Mocha theme overrides
+ * Palette: https://github.com/catppuccin/catppuccin
+ */
+
+:root {
+  /* Brand: CachyOS green */
+  --vp-c-brand-1: #a6e3a1;
+  --vp-c-brand-2: #94e2a3;
+  --vp-c-brand-3: #74c7a0;
+  --vp-c-brand-soft: rgba(166, 227, 161, 0.14);
+
+  --vp-button-brand-bg: var(--vp-c-brand-1);
+  --vp-button-brand-hover-bg: var(--vp-c-brand-2);
+  --vp-button-brand-active-bg: var(--vp-c-brand-3);
+  --vp-button-brand-border: transparent;
+  --vp-button-brand-text: #1e1e2e;
+  --vp-button-brand-hover-text: #1e1e2e;
+}
+
+/* Dark mode — Catppuccin Mocha */
+.dark {
+  --vp-c-bg: #1e1e2e;
+  --vp-c-bg-soft: #313244;
+  --vp-c-bg-mute: #45475a;
+  --vp-c-bg-elv: #181825;
+
+  --vp-c-text-1: #cdd6f4;
+  --vp-c-text-2: #bac2de;
+  --vp-c-text-3: #a6adc8;
+
+  --vp-c-divider: #45475a;
+  --vp-c-border: #585b70;
+
+  --vp-sidebar-bg-color: #181825;
+  --vp-nav-bg-color: rgba(30, 30, 46, 0.9);
+
+  /* Warning/danger callout colours */
+  --vp-custom-block-warning-bg: rgba(249, 226, 175, 0.1);
+  --vp-custom-block-warning-border: #f9e2af;
+  --vp-custom-block-danger-bg: rgba(243, 139, 168, 0.1);
+  --vp-custom-block-danger-border: #f38ba8;
+  --vp-custom-block-tip-bg: rgba(166, 227, 161, 0.1);
+  --vp-custom-block-tip-border: #a6e3a1;
+}
+
+/* Nav blur effect */
+.VPNav {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* Code blocks: slightly elevated */
+.dark .vp-doc div[class*="language-"] {
+  background-color: #11111b;
+  border: 1px solid #313244;
+}
+
+/* Inline code */
+.dark .vp-doc :not(pre) > code {
+  background-color: #313244;
+  color: #cba6f7;
+}
+
+/* Table styling */
+.vp-doc table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.dark .vp-doc th {
+  background-color: #313244;
+}
+
+.dark .vp-doc tr:nth-child(even) {
+  background-color: #181825;
+}
+
+/* Hero image sizing */
+.VPHero .image-src {
+  max-height: 240px;
+}
+
+/* Line numbers in code blocks */
+.vp-doc div[class*="language-"].line-numbers-mode .line-numbers {
+  opacity: 0.4;
+}
+
+/* "Last updated" text */
+.VPDocFooter .edit-link-button,
+.VPDocFooter .last-updated {
+  font-size: 13px;
+  opacity: 0.7;
+}
