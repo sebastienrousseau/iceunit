@@ -54,4 +54,30 @@ When prompted by the CachyOS installer, select **Manual Partitioning**. Configur
 ### 2. Post-Install: The Encrypted Vault
 Once the base OS is installed and booted, the final storage step is creating the encrypted loopback container (`loop0`) mounted within your home directory (e.g., `/home/<your_username>/<vault_name>`).
 
+Run the following commands, replacing `<SIZE>` (e.g., `60G`) and `<VAULT_DIR>` (e.g., `CodeVault`) with your preferred values:
+
+```bash
+# 1. Create a raw image file for the vault
+fallocate -l <SIZE> ~/.vault.img
+
+# 2. Format the file as a LUKS2 encrypted container (You will be prompted to set a password)
+cryptsetup luksFormat ~/.vault.img
+
+# 3. Open the encrypted container and map it to a virtual device name
+sudo cryptsetup open ~/.vault.img my_encrypted_vault
+
+# 4. Format the mapped device with BTRFS
+sudo mkfs.btrfs /dev/mapper/my_encrypted_vault
+
+# 5. Create the mount point directory
+mkdir -p ~/<VAULT_DIR>
+
+# 6. Mount the unlocked vault to the directory
+sudo mount /dev/mapper/my_encrypted_vault ~/<VAULT_DIR>
+
+# 7. Take ownership of the mounted directory so you can write to it without sudo
+sudo chown -R $USER:$USER ~/<VAULT_DIR>
+
+Note on Auto-Mounting: Because this is a loopback file sitting inside your already-mounted home directory, it is often best to mount it manually via a quick bash alias or script rather than adding it to /etc/fstab, which can cause boot delays if the file isn't available early in the boot sequence.
+
 
