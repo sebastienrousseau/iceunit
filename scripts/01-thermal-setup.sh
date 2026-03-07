@@ -214,9 +214,14 @@ verify() {
     header "Verification"
 
     info "Fan speed (should start rising within 30s if hot):"
-    APPLESMC_PATH=${APPLESMC_PATH:-$(ls -d /sys/devices/platform/applesmc.* 2>/dev/null | head -1)}
-    cat "${APPLESMC_PATH}/fan1_output" 2>/dev/null \
-        | xargs -I{} echo "  fan1: {} RPM" || echo "  (cannot read directly)"
+    # Use find to avoid fish shell glob failures
+    APPLESMC_PATH=${APPLESMC_PATH:-$(find /sys/devices/platform -maxdepth 1 -name "applesmc*" -type d 2>/dev/null | head -1)}
+    APPLESMC_PATH=${APPLESMC_PATH:-$(find /sys/devices/LNXSYSTM:00 -maxdepth 5 -name "APP0001:00" -type d 2>/dev/null | head -1)}
+    if [[ -n "$APPLESMC_PATH" ]] && [[ -f "${APPLESMC_PATH}/fan1_output" ]]; then
+        echo "  fan1: $(cat "${APPLESMC_PATH}/fan1_output") RPM"
+    else
+        echo "  (cannot read fan speed directly)"
+    fi
 
     info "mbpfan service status:"
     systemctl status mbpfan --no-pager -l | head -15
