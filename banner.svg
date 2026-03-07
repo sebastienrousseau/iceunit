@@ -48,10 +48,10 @@
   <!-- Right Side: Branding & Hook -->
   <g transform="translate(750, 240)">
     <!-- Iceunit Logo/Text -->
-    <text font-family="system-ui, sans-serif" font-size="84" font-weight="900" fill="#cba6f7" letter-spacing="-2">ICEUNIT <tspan fill="#89dceb">ICU</tspan></text>
+    <text font-family="system-ui, sans-serif" font-size="84" font-weight="900" fill="#cba6f7" letter-spacing="-2">Iceunit <tspan fill="#89dceb">(ICU)</tspan></text>
     
     <!-- Hook -->
-    <text y="80" font-family="system-ui, sans-serif" font-size="32" font-weight="600" fill="#c6d0f5">Turbocharge your T2 MacBook</text>
+    <text y="80" font-family="system-ui, sans-serif" font-size="32" font-weight="600" fill="#c6d0f5">Turbocharge your T2 MacBook Air 2020 (Intel)</text>
     <text y="125" font-family="system-ui, sans-serif" font-size="28" font-weight="400" fill="#949cbb">Optimised CachyOS performance suite.</text>
     
     <!-- Badge Tags -->
