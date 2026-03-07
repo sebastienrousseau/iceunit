@@ -33,19 +33,28 @@ require_root() {
 preflight() {
     header "Preflight Checks"
 
-    # Confirm we're on a T2 MacBook
-    if ! ls /sys/devices/platform/applesmc.768/ &>/dev/null; then
-        error "applesmc not found. Is apple-bce loaded? Try: sudo modprobe apple-bce"
+    # Locate Apple fan/SMC sysfs path using find (safe across all shells)
+    local path1 path2
+    path1=$(find /sys/devices/platform -maxdepth 1 -name "applesmc*" -type d 2>/dev/null | head -1)
+    path2=$(find /sys/devices/LNXSYSTM:00 -maxdepth 5 -name "APP0001:00" -type d 2>/dev/null | head -1)
+    APPLESMC_PATH="${path1:-$path2}"
+
+    if [[ -n "$APPLESMC_PATH" ]]; then
+        export APPLESMC_PATH
+        success "Apple fan device found at ${APPLESMC_PATH}"
+    else
+        warn "Apple fan sysfs path not found — fan speed reads skipped"
+        warn "mbpfan will still control the fan via coretemp sensors"
     fi
-    success "applesmc device found"
 
-    # Show current temps so user understands the urgency
+    # Show current temps
     info "Current temperatures:"
-    sensors 2>/dev/null | grep -E "^(Package|Core|TC[0-9])" | head -10 || true
+    sensors 2>/dev/null | grep -E "^(Package|Core)" | head -8 || warn "sensors not available"
 
-    info "Current fan speed:"
-    cat /sys/devices/platform/applesmc.768/fan1_output 2>/dev/null \
-        && echo " RPM (current)" || warn "Could not read fan speed directly"
+    # Show fan speed only if we have the path and file exists
+    if [[ -n "$APPLESMC_PATH" ]] && [[ -f "${APPLESMC_PATH}/fan1_output" ]]; then
+        info "Current fan speed: $(cat "${APPLESMC_PATH}/fan1_output") RPM"
+    fi
 }
 
 # ── Install mbpfan ────────────────────────────────────────────────────────────
@@ -56,13 +65,15 @@ install_mbpfan() {
         success "mbpfan already installed — skipping"
     else
         info "Installing mbpfan from AUR via paru/yay..."
-        # Try paru first, then yay, then error
+        info "You may be prompted for your password."
+        # AUR helpers must run as normal user, not via sudo
+        local aur_user="${SUDO_USER:-$USER}"
         if command -v paru &>/dev/null; then
-            sudo -u "${SUDO_USER:-$USER}" paru -S --noconfirm mbpfan
+            su -c "paru -S --noconfirm mbpfan" "$aur_user"
         elif command -v yay &>/dev/null; then
-            sudo -u "${SUDO_USER:-$USER}" yay -S --noconfirm mbpfan
+            su -c "yay -S --noconfirm mbpfan" "$aur_user"
         else
-            error "No AUR helper found. Install paru: sudo pacman -S paru"
+            error "No AUR helper found. Install with: paru -S mbpfan"
         fi
         success "mbpfan installed"
     fi
@@ -79,8 +90,8 @@ configure_mbpfan() {
     cat > /etc/mbpfan.conf << 'EOF'
 # /etc/mbpfan.conf
 # Tuned for MacBook Air 2020 (MacBookAir9,1) — Intel Core i5-1030NG7
-# applesmc fan1: 2700–8000 RPM
-# Sensors confirmed present: coretemp + applesmc TC* probes
+# Fan sysfs path: /sys/devices/LNXSYSTM:.../APP0001:00/
+# Sensors confirmed: coretemp (Package id 0, Core 0-3)
 #
 # Strategy:
 #   • Below 55°C  → minimum speed (quiet)
@@ -92,16 +103,8 @@ configure_mbpfan() {
 # Poll interval in seconds
 poll_interval = 3
 
-# Read from both coretemp and applesmc
-# applesmc TCMX = max of all CPU core sensors (most reliable on T2)
-sensors = [
-    coretemp-isa-0000/Package id 0,
-    applesmc-acpi-0/TCMX,
-    applesmc-acpi-0/TC0P
-]
-
 [fan]
-# Fan identifier (check: ls /sys/devices/platform/applesmc.768/fan*_*)
+# Fan identifier
 fan_id = 1
 
 # Hardware limits for MacBook Air 2020 fan
@@ -125,7 +128,6 @@ max_temp        = 85
 max_temp_speed  = 8000
 
 # Hysteresis: don't reduce fan until temp drops this many degrees below threshold
-# Prevents rapid fan speed oscillation
 temp_change_factor = 4
 EOF
 
@@ -212,7 +214,8 @@ verify() {
     header "Verification"
 
     info "Fan speed (should start rising within 30s if hot):"
-    cat /sys/devices/platform/applesmc.768/fan1_output 2>/dev/null \
+    APPLESMC_PATH=${APPLESMC_PATH:-$(ls -d /sys/devices/platform/applesmc.* 2>/dev/null | head -1)}
+    cat "${APPLESMC_PATH}/fan1_output" 2>/dev/null \
         | xargs -I{} echo "  fan1: {} RPM" || echo "  (cannot read directly)"
 
     info "mbpfan service status:"
