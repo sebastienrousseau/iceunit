@@ -1,3 +1,11 @@
+<p align="center">
+  <a href="https://iceunit.com">
+    <img src="banner.svg" alt="Iceunit (ICU) Banner" width="100%">
+  </a>
+  <br>
+  <b>Turbocharge your T2 MacBook Air 2020 (Intel)</b>
+</p>
+
 # CachyOS on MacBook Air 2020 (Intel)
 
 [![Tests](https://github.com/sebastienrousseau/cachyos-macbook-intel-2020/actions/workflows/tests.yml/badge.svg)](https://github.com/sebastienrousseau/cachyos-macbook-intel-2020/actions/workflows/tests.yml)

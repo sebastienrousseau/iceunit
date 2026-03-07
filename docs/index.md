@@ -49,3 +49,9 @@ features:
     title: Workstation Provisioning
     details: Complete workstation setup for AI, DevOps, and Security. From Neovim and Docker to Kubernetes and encrypted secrets management.
 ---
+
+<p align="center">
+  <img src="/banner.svg" alt="Iceunit (ICU) Banner" width="100%">
+  <br>
+  <b>Turbocharge your T2 MacBook Air 2020 (Intel)</b>
+</p>
