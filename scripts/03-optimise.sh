@@ -258,7 +258,7 @@ optimise_sleep() {
 
     # Confirm deep sleep is default
     local current_sleep
-    current_sleep=$(cat /sys/power/mem_sleep 2>/dev/null | grep -oP '\[\K[^\]]+')
+    current_sleep=$(grep -oP '\[\K[^\]]+' /sys/power/mem_sleep 2>/dev/null || true)
     if [[ "$current_sleep" == "deep" ]]; then
         success "Deep sleep (S3-like via s2idle) already default — good"
     else
