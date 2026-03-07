@@ -1,0 +1,20 @@
+name: Lint Bash Scripts
+
+on:
+  push:
+    paths:
+      - 'scripts/**/*.sh'
+  pull_request:
+    paths:
+      - 'scripts/**/*.sh'
+
+jobs:
+  shellcheck:
+    name: Check Scripts
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run ShellCheck
+        run: shellcheck scripts/*.sh
