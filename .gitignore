@@ -9,3 +9,5 @@ docs/.vitepress/cache/
 .env
 .env.local
 tests/lib/
+*.tar.gz
+*.zip
