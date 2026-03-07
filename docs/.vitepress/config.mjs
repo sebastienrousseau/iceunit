@@ -8,7 +8,7 @@ export default defineConfig({
 
   // ── GitHub Pages base path ─────────────────────────────────────────────────
   // Matches https://sebastienrousseau.github.io/cachyos-macbook-intel-2020/
-  base: '/cachyos-macbook-intel-2020/',
+  base: '/',
 
   // ── Last updated timestamps ────────────────────────────────────────────────
   lastUpdated: true,
