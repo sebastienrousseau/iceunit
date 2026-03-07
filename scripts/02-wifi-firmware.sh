@@ -123,7 +123,11 @@ restore_firmware() {
 
     # Reload the kernel module
     info "Reloading brcmfmac kernel module..."
-    modprobe -r brcmfmac 2>/dev/null && modprobe brcmfmac || warn "Module reload failed — reboot may be needed"
+    if modprobe -r brcmfmac 2>/dev/null && modprobe brcmfmac; then
+        success "Kernel module reloaded"
+    else
+        warn "Module reload failed — reboot may be needed"
+    fi
 
     success "Firmware restored"
     verify_firmware

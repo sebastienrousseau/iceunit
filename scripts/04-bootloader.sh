@@ -34,7 +34,6 @@ require_root() {
 
 ESP="/boot"
 LIMINE_CONF="${ESP}/limine.conf"
-MACHINE_ID="33f8ec47f2cb4e3aadb46787e0282e6c"   # Your confirmed machine ID
 
 # ── Show current boot status ──────────────────────────────────────────────────
 show_status() {
@@ -196,9 +195,11 @@ EOF
     refind_id=$(efibootmgr | grep -i "refind" | grep -oP 'Boot\K[0-9A-F]+' | head -1)
 
     if [[ -n "$limine_id" ]] && [[ -n "$refind_id" ]]; then
-        efibootmgr -o "${limine_id},${refind_id},0080" 2>/dev/null \
-            && success "Boot order updated: Limine → rEFInd → macOS" \
-            || warn "Could not set boot order — set manually with efibootmgr"
+        if efibootmgr -o "${limine_id},${refind_id},0080" 2>/dev/null; then
+            success "Boot order updated: Limine → rEFInd → macOS"
+        else
+            warn "Could not set boot order — set manually with efibootmgr"
+        fi
     fi
 
     echo ""

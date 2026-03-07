@@ -46,17 +46,7 @@ optimise_kernel_params() {
 
     # Params already present (nowatchdog is already set)
     # We add Ice Lake-specific and T2-specific tweaks
-    local desired_params=(
-        "intel_idle.max_cstate=4"       # Prevent deep C-states causing audio pops
-        "snd_hda_intel.power_save=0"    # Disable HDA power save (T2 audio stability)
-        "pcie_aspm=off"                 # Prevent PCIe ASPM conflicts with T2 bridge
-        "mem_sleep_default=deep"        # Prefer S3-like deep sleep over s2idle
-        "vm.swappiness=10"              # Low swappiness — ZRAM handles it
-    )
-
-    # Separate sysctl params from kernel cmdline params
     local cmdline_params=("intel_idle.max_cstate=4" "snd_hda_intel.power_save=0" "pcie_aspm=off" "mem_sleep_default=deep")
-    local sysctl_params=("vm.swappiness=10")
 
     # Handle cmdline
     local current_cmdline=""
@@ -210,7 +200,11 @@ EOF
 
     # Apply live (non-persistent) optimisations now
     info "Applying live BTRFS optimisations (no fstab edit needed)..."
-    mount -o remount,noatime / 2>/dev/null && success "noatime applied live" || warn "Could not remount"
+    if mount -o remount,noatime / 2>/dev/null; then
+        success "noatime applied live"
+    else
+        warn "Could not remount"
+    fi
     btrfs filesystem defragment -r /home &>/dev/null &
     info "Background defragmentation started for /home"
 }
