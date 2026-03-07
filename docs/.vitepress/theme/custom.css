@@ -44,10 +44,20 @@
   --vp-custom-block-tip-border: #a6e3a1;
 }
 
-/* Nav blur effect */
+/* Nav blur effect — applied via pseudo-element to avoid creating a
+   stacking context on iOS Safari that hides the outline dropdown */
 .VPNav {
+  position: relative;
+}
+
+.VPNav::before {
+  content: '';
+  position: absolute;
+  inset: 0;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+  z-index: -1;
+  pointer-events: none;
 }
 
 /* Code blocks: slightly elevated */
@@ -106,14 +116,15 @@
   outline: none;
 }
 
-/* Reduced motion */
+/* Reduced motion — use 0s (not 0.01ms) so Vue Transition detects
+   "no transition" and skips waiting for transitionend on iOS Safari */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+    transition-duration: 0s !important;
     scroll-behavior: auto !important;
   }
 }
