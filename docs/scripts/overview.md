@@ -24,6 +24,8 @@ All scripts follow these conventions:
 
 - **`#!/usr/bin/env bash`** — always run under bash, never rely on the calling shell
 - **`set -euo pipefail`** — exit on error, undefined variables, or pipe failures
+- **`--dry-run` flag** — every script supports `--dry-run` to preview changes without modifying the system
+- **`--help` flag** — every script displays usage information with `--help`
 - **`find` instead of globs** — glob patterns (`applesmc.*`) fail in fish shell when called via `sudo bash`; all path discovery uses `find`
 - **No `sudo -u` for AUR helpers** — `paru`/`yay` must run as the normal user; calling them via `sudo -u` inside a sudo session hangs indefinitely
 - **Idempotent** — safe to run multiple times; existing configs are backed up, not overwritten blindly
@@ -32,3 +34,22 @@ All scripts follow these conventions:
 ## Shell Compatibility Note
 
 Scripts are invoked with `sudo bash scripts/01-thermal-setup.sh` — always specify `bash` explicitly. If you use fish shell and run `sudo scripts/01-thermal-setup.sh` without the `bash`, fish will try to execute it directly and glob patterns may still cause issues even with the shebang present.
+
+## Testing
+
+All scripts are covered by 136 unit tests using [bats-core](https://github.com/bats-core/bats-core) and integration tests running in Arch Linux Docker containers.
+
+```bash
+# Run unit tests locally
+bats tests/*.bats
+
+# Run unit tests in Docker (Arch Linux)
+docker build -f tests/Dockerfile.unit -t cachyos-unit-tests .
+docker run --rm cachyos-unit-tests
+
+# Run integration tests in Docker (Arch Linux)
+docker build -f tests/Dockerfile.integration -t cachyos-integration-tests .
+docker run --rm cachyos-integration-tests
+```
+
+CI runs ShellCheck, unit tests, and integration tests on every push and pull request.

@@ -1,0 +1,45 @@
+FROM archlinux:latest
+
+# Bootstrap a realistic Arch environment
+RUN pacman-key --init \
+    && pacman-key --populate archlinux \
+    && pacman -Syu --noconfirm \
+    && pacman -S --noconfirm \
+        bash \
+        sudo \
+        coreutils \
+        findutils \
+        util-linux \
+        cryptsetup \
+        btrfs-progs \
+        systemd \
+        lm_sensors \
+        tlp \
+        efibootmgr \
+        git \
+        which \
+    && pacman -Scc --noconfirm
+
+# Create a non-root test user (mirrors real usage)
+RUN useradd -m -G wheel testuser \
+    && echo "testuser ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+
+# Create fake firmware directory
+RUN mkdir -p /lib/firmware/brcm \
+    && touch /lib/firmware/brcm/brcmfmac4377b3-pcie.apple,fiji.bin \
+    && touch /lib/firmware/brcm/brcmfmac4377b3-pcie.apple,fiji.clm_blob \
+    && touch /lib/firmware/brcm/brcmfmac4377b3-pcie.apple,fiji.txcap_blob \
+    && touch /lib/firmware/brcm/brcmbt4377b3-apple,formosa.bin \
+    && touch /lib/firmware/brcm/brcmbt4377b3-apple,formosa.ptb
+
+# Create fake vault image for testuser
+RUN su - testuser -c "fallocate -l 10M /home/testuser/.vault.img"
+
+WORKDIR /repo
+COPY scripts/ ./scripts/
+COPY tests/integration/ ./tests/integration/
+
+RUN chown -R testuser:testuser /repo
+
+USER testuser
+CMD ["bash", "tests/integration/run-all.sh"]

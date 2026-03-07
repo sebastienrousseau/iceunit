@@ -11,12 +11,21 @@ on:
       - 'tests/**'
 
 jobs:
-  bats:
-    name: Bash Script Tests
+  shellcheck:
+    name: ShellCheck
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+      - name: ShellCheck
+        uses: ludeeus/action-shellcheck@master
+        with:
+          scandir: './scripts'
+
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
 
       - name: Install bats-core
         run: |
@@ -26,20 +35,22 @@ jobs:
       - name: Run tests
         run: bats tests/*.bats
 
-      - name: Install kcov
-        if: always()
-        run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq kcov
+  unit-tests-docker:
+    name: Unit Tests (Arch Linux)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build unit test image
+        run: docker build -f tests/Dockerfile.unit -t cachyos-unit-tests .
+      - name: Run unit tests
+        run: docker run --rm cachyos-unit-tests
 
-      - name: Generate coverage report
-        if: always()
-        run: |
-          kcov --include-path=scripts/ coverage/ bats tests/*.bats || true
-
-      - name: Upload coverage artifact
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-report
-          path: coverage/
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build integration test image
+        run: docker build -f tests/Dockerfile.integration -t cachyos-integration-tests .
+      - name: Run integration tests
+        run: docker run --rm --privileged cachyos-integration-tests

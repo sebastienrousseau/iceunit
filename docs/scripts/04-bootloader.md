@@ -18,7 +18,16 @@ sudo bash scripts/04-bootloader.sh cmdline
 sudo bash scripts/04-bootloader.sh refind
 sudo bash scripts/04-bootloader.sh bootorder
 bash scripts/04-bootloader.sh snapshots
+
+# Preview without changes
+sudo bash scripts/04-bootloader.sh --dry-run
+bash scripts/04-bootloader.sh --help
 ```
+
+| Flag | Description |
+|---|---|
+| `--dry-run` | Preview all actions without modifying the system |
+| `--help` | Show usage information and exit |
 
 ## Subcommands
 

@@ -9,10 +9,15 @@ Installs and configures `mbpfan` for proper fan control on the MacBook Air 2020.
 ## Usage
 
 ```bash
-sudo bash scripts/01-thermal-setup.sh
+sudo bash scripts/01-thermal-setup.sh [--dry-run] [--help]
 ```
 
 Requires root. Run this **immediately** after installing CachyOS.
+
+| Flag | Description |
+|---|---|
+| `--dry-run` | Preview all actions without modifying the system |
+| `--help` | Show usage information and exit |
 
 ## What It Does
 

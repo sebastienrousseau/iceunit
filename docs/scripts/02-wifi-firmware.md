@@ -18,7 +18,16 @@ bash scripts/02-wifi-firmware.sh backup
 sudo bash scripts/02-wifi-firmware.sh restore
 sudo bash scripts/02-wifi-firmware.sh install-pkg
 bash scripts/02-wifi-firmware.sh guide
+
+# Preview without changes
+bash scripts/02-wifi-firmware.sh --dry-run
+bash scripts/02-wifi-firmware.sh --help
 ```
+
+| Flag | Description |
+|---|---|
+| `--dry-run` | Preview all actions without modifying the system |
+| `--help` | Show usage information and exit |
 
 ## Subcommands
 

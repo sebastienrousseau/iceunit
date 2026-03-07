@@ -16,6 +16,18 @@
 
 set -euo pipefail
 
+DRY_RUN=false
+for arg in "$@"; do [[ "$arg" == "--dry-run" ]] && DRY_RUN=true; done
+
+# Wrapper for destructive commands
+dryrun() {
+    if $DRY_RUN; then
+        echo "[DRY-RUN] $*"
+    else
+        "$@"
+    fi
+}
+
 RED='\033[0;31m'; YELLOW='\033[1;33m'; GREEN='\033[0;32m'
 CYAN='\033[0;36m'; BOLD='\033[1m'; RESET='\033[0m'
 
@@ -96,9 +108,20 @@ backup_firmware() {
     mkdir -p "${BACKUP_DIR}"
 
     info "Backing up to ${BACKUP_DIR}..."
-    cp -v "${FIRMWARE_DIR}"/brcmfmac4377* "${BACKUP_DIR}/" 2>/dev/null || warn "Some Wi-Fi files not found"
-    cp -v "${FIRMWARE_DIR}"/brcmbt4377* "${BACKUP_DIR}/" 2>/dev/null || warn "Some BT files not found"
-    cp -v "${FIRMWARE_DIR}"/BCM-0bb4-0306.hcd.zst "${BACKUP_DIR}/" 2>/dev/null || true
+    local found_wifi=0 found_bt=0
+    while IFS= read -r -d '' f; do
+        cp -v "$f" "${BACKUP_DIR}/" && found_wifi=1
+    done < <(find "${FIRMWARE_DIR}" -maxdepth 1 -name "brcmfmac4377*" -print0 2>/dev/null)
+    [[ $found_wifi -eq 1 ]] || warn "Some Wi-Fi files not found"
+
+    while IFS= read -r -d '' f; do
+        cp -v "$f" "${BACKUP_DIR}/" && found_bt=1
+    done < <(find "${FIRMWARE_DIR}" -maxdepth 1 -name "brcmbt4377*" -print0 2>/dev/null)
+    [[ $found_bt -eq 1 ]] || warn "Some BT files not found"
+
+    if [[ -f "${FIRMWARE_DIR}/BCM-0bb4-0306.hcd.zst" ]]; then
+        cp -v "${FIRMWARE_DIR}/BCM-0bb4-0306.hcd.zst" "${BACKUP_DIR}/"
+    fi
 
     # Create a manifest
     ls -la "${BACKUP_DIR}/" > "${BACKUP_DIR}/MANIFEST.txt"
@@ -118,8 +141,8 @@ restore_firmware() {
 
     [[ $EUID -eq 0 ]] || error "Restore requires sudo: sudo bash $0 restore"
 
-    cp -v "${BACKUP_DIR}"/brcm* "${FIRMWARE_DIR}/" 2>/dev/null || true
-    cp -v "${BACKUP_DIR}"/BCM* "${FIRMWARE_DIR}/" 2>/dev/null || true
+    find "${BACKUP_DIR}" -maxdepth 1 -name "brcm*" -print0 | xargs -0 -I{} cp -v {} "${FIRMWARE_DIR}/"
+    find "${BACKUP_DIR}" -maxdepth 1 -name "BCM*" -print0 | xargs -0 -I{} cp -v {} "${FIRMWARE_DIR}/"
 
     # Reload the kernel module
     info "Reloading brcmfmac kernel module..."

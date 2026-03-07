@@ -15,6 +15,18 @@
 
 set -euo pipefail
 
+DRY_RUN=false
+for arg in "$@"; do [[ "$arg" == "--dry-run" ]] && DRY_RUN=true; done
+
+# Wrapper for destructive commands
+dryrun() {
+    if $DRY_RUN; then
+        echo "[DRY-RUN] $*"
+    else
+        "$@"
+    fi
+}
+
 # ── Colour helpers ────────────────────────────────────────────────────────────
 RED='\033[0;31m'; YELLOW='\033[1;33m'; GREEN='\033[0;32m'
 CYAN='\033[0;36m'; BOLD='\033[1m'; RESET='\033[0m'

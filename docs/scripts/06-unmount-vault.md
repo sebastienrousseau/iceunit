@@ -9,8 +9,13 @@ Unmounts and locks the LUKS2 encrypted code vault. Unmounts `~/Code` and closes 
 ## Usage
 
 ```bash
-bash scripts/06-unmount-vault.sh
+bash scripts/06-unmount-vault.sh [--dry-run] [--help]
 ```
+
+| Flag | Description |
+|---|---|
+| `--dry-run` | Preview all actions without modifying the system |
+| `--help` | Show usage information and exit |
 
 ## What It Does
 

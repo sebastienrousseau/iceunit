@@ -1,0 +1,27 @@
+FROM archlinux:latest
+
+RUN pacman -Sy --noconfirm bash coreutils findutils grep sed gawk \
+    && pacman -S --noconfirm git \
+    && git clone --depth 1 https://github.com/bats-core/bats-core /opt/bats \
+    && /opt/bats/install.sh /usr/local \
+    && git clone --depth 1 https://github.com/bats-core/bats-support /opt/bats-support \
+    && git clone --depth 1 https://github.com/bats-core/bats-assert /opt/bats-assert \
+    && pacman -Scc --noconfirm
+
+RUN useradd -m testuser
+
+WORKDIR /repo
+COPY scripts/ ./scripts/
+COPY tests/*.bats ./tests/
+COPY tests/test_helper.bash ./tests/
+
+# Use system-installed bats libraries
+RUN mkdir -p tests/lib \
+    && ln -s /opt/bats /repo/tests/lib/bats-core \
+    && ln -s /opt/bats-support /repo/tests/lib/bats-support \
+    && ln -s /opt/bats-assert /repo/tests/lib/bats-assert
+
+RUN chown -R testuser:testuser /repo
+
+USER testuser
+CMD ["bash", "-c", "bats tests/*.bats"]

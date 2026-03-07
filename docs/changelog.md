@@ -4,6 +4,25 @@ description: Release history and known issues for CachyOS MacBook Air 2020 scrip
 
 # Changelog
 
+## v1.1.0 — March 2026
+
+### Added
+- `--dry-run` flag on all 7 scripts — preview actions without modifying the system
+- `--help` flag on all 7 scripts — display usage information
+- 136 unit tests using bats-core with full mock framework (`tests/*.bats`)
+- Docker-based unit test container (`tests/Dockerfile.unit`) on Arch Linux
+- Docker-based integration test container (`tests/Dockerfile.integration`) on Arch Linux with real packages
+- Consolidated CI workflow (`.github/workflows/tests.yml`) with ShellCheck, unit tests, and integration tests
+- Testing section in README, CONTRIBUTING, and scripts overview docs
+
+### Fixed
+- `02-wifi-firmware.sh`: replaced glob patterns in backup/restore with `find` commands for fish shell compatibility
+- `03-optimise.sh`: replaced `sudo -u "$SUDO_USER"` with direct `HOME` override to avoid hanging AUR helpers
+- `05-mount-vault.sh`: added `$USER` fallback via `whoami` for environments where `$USER` is unset (e.g. Docker containers)
+- `tests/integration/run-all.sh`: fixed `((PASS++))` arithmetic causing `set -e` to exit when counter is zero
+
+---
+
 ## v1.0.0 — March 2026
 
 Initial public release. All scripts field-tested on MacBook Air 2020 (MacBookAir9,1) running CachyOS kernel 6.19.x.

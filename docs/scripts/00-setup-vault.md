@@ -9,10 +9,15 @@ First-time creation of a LUKS2-encrypted BTRFS loopback container for securing s
 ## Usage
 
 ```bash
-bash scripts/00-setup-vault.sh
+bash scripts/00-setup-vault.sh [--dry-run] [--help]
 ```
 
 The script is interactive — it prompts for vault size and LUKS passphrase.
+
+| Flag | Description |
+|---|---|
+| `--dry-run` | Preview all actions without modifying the system |
+| `--help` | Show usage information and exit |
 
 ## What It Does
 

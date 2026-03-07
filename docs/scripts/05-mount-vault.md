@@ -9,10 +9,15 @@ Unlocks and mounts the LUKS2 encrypted code vault. Opens `~/.vault.img` via `cry
 ## Usage
 
 ```bash
-bash scripts/05-mount-vault.sh
+bash scripts/05-mount-vault.sh [--dry-run] [--help]
 ```
 
 You will be prompted for your LUKS passphrase via `sudo cryptsetup open`.
+
+| Flag | Description |
+|---|---|
+| `--dry-run` | Preview all actions without modifying the system |
+| `--help` | Show usage information and exit |
 
 ## What It Does
 

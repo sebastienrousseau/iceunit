@@ -1,6 +1,6 @@
 # CachyOS on MacBook Air 2020 (Intel)
 
-[![ShellCheck](https://github.com/sebastienrousseau/cachyos-macbook-intel-2020/actions/workflows/shellcheck.yml/badge.svg)](https://github.com/sebastienrousseau/cachyos-macbook-intel-2020/actions/workflows/shellcheck.yml)
+[![Tests](https://github.com/sebastienrousseau/cachyos-macbook-intel-2020/actions/workflows/tests.yml/badge.svg)](https://github.com/sebastienrousseau/cachyos-macbook-intel-2020/actions/workflows/tests.yml)
 [![Docs](https://img.shields.io/badge/docs-iceunit.com-blue)](https://iceunit.com)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-MacBookAir9%2C1-lightgrey)]()
@@ -54,8 +54,14 @@ cachyos-macbook-intel-2020/
 │   ├── 04-bootloader.sh         # Limine + rEFInd boot management
 │   ├── 05-mount-vault.sh        # Unlock and mount code vault
 │   └── 06-unmount-vault.sh      # Lock and unmount code vault
+├── tests/
+│   ├── *.bats                   # 136 unit tests (bats-core)
+│   ├── test_helper.bash         # Shared setup, mock framework
+│   ├── Dockerfile.unit          # Arch Linux unit test container
+│   ├── Dockerfile.integration   # Arch Linux integration test container
+│   └── integration/             # Integration test scripts
 ├── docs/                        # VitePress documentation site
-├── .github/workflows/           # ShellCheck CI
+├── .github/workflows/           # CI: ShellCheck, unit & integration tests
 ├── SECURITY.md                  # Security policy
 ├── CONTRIBUTING.md              # Contribution guidelines
 └── LICENSE                      # MIT licence
@@ -72,6 +78,32 @@ cachyos-macbook-intel-2020/
 | `04-bootloader.sh` | Limine & boot management | `sudo bash` | [Reference](https://iceunit.com/scripts/04-bootloader) |
 | `05-mount-vault.sh` | Unlock and mount vault | `bash` | [Reference](https://iceunit.com/scripts/05-mount-vault) |
 | `06-unmount-vault.sh` | Lock and unmount vault | `bash` | [Reference](https://iceunit.com/scripts/06-unmount-vault) |
+
+All scripts support `--dry-run` to preview changes without modifying the system, and `--help` for usage information.
+
+---
+
+## Testing
+
+The project includes a comprehensive test suite:
+
+```bash
+# Static analysis
+shellcheck scripts/*.sh
+
+# Unit tests (136 tests, requires bats-core)
+bats tests/*.bats
+
+# Unit tests in Docker (Arch Linux)
+docker build -f tests/Dockerfile.unit -t cachyos-unit-tests .
+docker run --rm cachyos-unit-tests
+
+# Integration tests in Docker (Arch Linux with real packages)
+docker build -f tests/Dockerfile.integration -t cachyos-integration-tests .
+docker run --rm cachyos-integration-tests
+```
+
+CI runs ShellCheck, unit tests, and integration tests automatically on every push and pull request that touches `scripts/` or `tests/`.
 
 ---
 

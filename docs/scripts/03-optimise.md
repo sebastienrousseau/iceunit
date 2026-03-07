@@ -15,7 +15,17 @@ sudo bash scripts/03-optimise.sh
 # Audio fix only (no root required)
 bash scripts/03-optimise.sh --audio-only
 systemctl --user restart pipewire pipewire-pulse
+
+# Preview without changes
+sudo bash scripts/03-optimise.sh --dry-run
+bash scripts/03-optimise.sh --help
 ```
+
+| Flag | Description |
+|---|---|
+| `--dry-run` | Preview all actions without modifying the system |
+| `--audio-only` | Apply PipeWire audio config only (no root required) |
+| `--help` | Show usage information and exit |
 
 ## Execution Model
 

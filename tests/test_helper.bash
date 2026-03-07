@@ -41,6 +41,7 @@ common_setup() {
     # Set test env — mock bin first in PATH
     export PATH="${MOCK_BIN}:${PATH}"
     export HOME="$TEST_HOME"
+    export USER="${USER:-testuser}"
 
     # Always mock sudo (just pass through)
     _create_sudo_mock
