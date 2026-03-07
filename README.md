@@ -35,4 +35,23 @@ Apple's T2 Security Chip actively prevents booting from external USBs and runnin
 3. Keep holding until the Startup Manager appears.
 4. Select the yellow external drive icon (often labeled "EFI Boot" or similar) and press **Enter**.
 
+## 💽 Step 2: Disk Partitioning & LUKS Vault
+
+This environment uses a highly specific partition layout: a BTRFS root for seamless system snapshots, ZRAM for performance, and a dedicated LUKS2-encrypted loopback file for securing cross-platform source code.
+
+### 1. Base System Partitions (via CachyOS Calamares Installer)
+When prompted by the CachyOS installer, select **Manual Partitioning**. Configure your internal NVMe drive (`nvme0n1`) as follows:
+
+* **Partition 1 (`/boot`):** ~4GB, `fat32`. 
+  * Mount point: `/boot/efi` (or `/boot` depending on the bootloader chosen).
+  * Flags: `boot`, `esp`.
+* **Partition 2 (`/`):** Remaining space (~250GB), `btrfs`. 
+  * Mount point: `/`.
+  * *Note:* The installer will automatically handle the standard BTRFS subvolumes (`@`, `@home`, `@var`, etc.).
+
+*Do not create a dedicated swap partition. This setup relies entirely on **ZRAM** (`zram0`) to reduce wear on the NVMe drive.*
+
+### 2. Post-Install: The Encrypted Vault
+Once the base OS is installed and booted, the final storage step is creating the encrypted loopback container (`loop0`) mounted within your home directory (e.g., `/home/<your_username>/<vault_name>`).
+
 
