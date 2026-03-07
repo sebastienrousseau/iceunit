@@ -78,6 +78,7 @@ sudo mount /dev/mapper/my_encrypted_vault ~/<VAULT_DIR>
 # 7. Take ownership of the mounted directory so you can write to it without sudo
 sudo chown -R $USER:$USER ~/<VAULT_DIR>
 
-Note on Auto-Mounting: Because this is a loopback file sitting inside your already-mounted home directory, it is often best to mount it manually via a quick bash alias or script rather than adding it to /etc/fstab, which can cause boot delays if the file isn't available early in the boot sequence.
+```
 
+Note on Auto-Mounting: Because this is a loopback file sitting inside your already-mounted home directory, it is often best to mount it manually via a quick bash alias or script rather than adding it to /etc/fstab, which can cause boot delays if the file isn't available early in the boot sequence.
 
