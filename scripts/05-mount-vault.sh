@@ -1,8 +1,8 @@
 #!/bin/bash
 set -euo pipefail
 
-MAPPER_NAME="my_encrypted_vault"
-MOUNT_POINT="$HOME/CodeVault"
+MAPPER_NAME="code_vault"
+MOUNT_POINT="$HOME/Code"
 VAULT_IMG="$HOME/.vault.img"
 
 echo "🔐 Unlocking and mounting the code vault..."
@@ -17,4 +17,5 @@ if [ ! -e "/dev/mapper/$MAPPER_NAME" ]; then
 fi
 
 sudo mount "/dev/mapper/$MAPPER_NAME" "$MOUNT_POINT"
+sudo chown -R "$USER:$USER" "$MOUNT_POINT"
 echo "✅ Vault successfully mounted at $MOUNT_POINT"
