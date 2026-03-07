@@ -1,6 +1,6 @@
 .PHONY: help install bootstrap lint test test-go test-docker test-integration \
-       test-all docs docs-build docs-preview clean \
-       vault thermal wifi optimise bootloader mount unmount
+       test-all verify docs docs-build docs-preview clean \
+       init vault thermal wifi optimise bootloader mount unmount
 
 SHELL := /bin/bash
 
@@ -19,13 +19,16 @@ help: ## Show this help
 
 # ── Install ──────────────────────────────────────────────────────────────────
 
-install: ## Run the interactive Go-based installer
-	./install.sh
+install: ## Run the interactive Go-based installer (supports DRY_RUN=1)
+	./install.sh $(FLAGS)
 
 bootstrap: ## Bootstrap dotfiles from remote repo
 	./bootstrap-dotfiles.sh
 
 # ── Scripts (run individually, supports DRY_RUN=1) ───────────────────────────
+
+init: ## Smart package synchronisation (00-system-init.sh)
+	sudo bash scripts/00-system-init.sh $(FLAGS)
 
 vault: ## Create LUKS2 encrypted vault (00-setup-vault.sh)
 	bash scripts/00-setup-vault.sh $(FLAGS)
@@ -51,7 +54,7 @@ unmount: ## Lock and unmount code vault (06-unmount-vault.sh)
 # ── Lint ─────────────────────────────────────────────────────────────────────
 
 lint: ## Run ShellCheck on all scripts and Go lint
-	shellcheck scripts/*.sh
+	shellcheck scripts/*.sh workstation/*.sh
 	cd installer && go vet ./... && go fmt ./...
 
 # ── Test ─────────────────────────────────────────────────────────────────────
@@ -71,6 +74,9 @@ test-integration: ## Run integration tests in Arch Linux Docker container
 	docker run --rm cachyos-integration-tests
 
 test-all: lint test test-go test-docker test-integration ## Run lint, unit tests, and integration tests
+
+verify: ## Verify the health of the entire Iceunit installation
+	bash scripts/99-verify-install.sh
 
 # ── Docs ─────────────────────────────────────────────────────────────────────
 

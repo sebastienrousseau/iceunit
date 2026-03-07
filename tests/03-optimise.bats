@@ -81,7 +81,7 @@ teardown() {
 
     [ "$status" -eq 0 ]
     [ -f "${TEST_TEMP}/etc/tlp.d/10-macbook-air-2020.conf" ]
-    [[ "$output" == *"TLP drop-in written"* ]]
+    [[ "$output" == *"TLP service enabled"* ]]
 }
 
 @test "tlp: config has USB_AUTOSUSPEND=0" {

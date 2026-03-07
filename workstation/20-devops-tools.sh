@@ -1,13 +1,31 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-echo "=== DevOps Tooling Setup ==="
+DRY_RUN=false
+ASSUME_YES=false
+for arg in "$@"; do
+    [[ "$arg" == "--dry-run" ]] && DRY_RUN=true
+    [[ "$arg" == "--yes" ]] && ASSUME_YES=true
+done
 
-sudo pacman -Sy --needed --noconfirm kubectl helm k9s terraform ansible stern dive rsync
+# Wrapper for destructive commands
+dryrun() {
+    if $DRY_RUN; then
+        printf '\033[1;30m[DRY-RUN]\033[0m %s\n' "$*"
+    else
+        "$@"
+    fi
+}
+
+log()   { printf '[%s] %s\n' "$(date '+%H:%M:%S')" "$*"; }
+
+log "=== DevOps Tooling Setup ==="
+
+dryrun sudo pacman -Sy --needed --noconfirm kubectl helm k9s terraform ansible stern dive rsync
 
 # Install kubectl completion
 if command -v kubectl >/dev/null 2>&1; then
-  kubectl completion bash | sudo tee /etc/bash_completion.d/kubectl >/dev/null || true
+  dryrun kubectl completion bash | sudo tee /etc/bash_completion.d/kubectl >/dev/null || true
 fi
 
-echo "DevOps tooling installed."
+log "DevOps tooling installed."

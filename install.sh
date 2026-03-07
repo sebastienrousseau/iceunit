@@ -4,29 +4,19 @@ set -Eeuo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 log() {
-  printf '\n[%s] %s\n' "$(date '+%H:%M:%S')" "$*"
+  printf '\033[1;36mRunning the Iceunit (ICU) installer...\033[0m\n'
 }
 
-run_scripts() {
-  local dir="$1"
-  local label="$2"
+cd "$ROOT_DIR/installer"
 
-  shopt -s nullglob
-  local scripts=("$dir"/[0-9][0-9]-*.sh)
-  shopt -u nullglob
+if ! command -v go >/dev/null 2>&1; then
+  printf '\n[ERROR] Go is not installed. Please install Go (e.g., sudo pacman -S go) to use the new interactive installer.\n'
+  exit 1
+fi
 
-  if (( ${#scripts[@]} == 0 )); then
-    log "No numbered scripts found in $label ($dir), skipping"
-    return 0
-  fi
+if [[ $EUID -ne 0 ]]; then
+  printf '\n\033[1;33m[WARN]\033[0m Many scripts require root privileges. It is recommended to run with: sudo make install\n'
+fi
 
-  for script in "${scripts[@]}"; do
-    log "Running $label/$(basename "$script")"
-    bash "$script"
-  done
-}
-
-run_scripts "$ROOT_DIR/scripts" "scripts"
-run_scripts "$ROOT_DIR/workstation" "workstation"
-
-log "Install complete"
+log
+go run main.go --yes "$@"

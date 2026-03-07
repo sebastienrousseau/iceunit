@@ -368,6 +368,11 @@ export default defineConfig({
         activeMatch: '/scripts/',
       },
       {
+        text: 'Workstation',
+        link: '/workstation/overview',
+        activeMatch: '/workstation/',
+      },
+      {
         text: 'Resources',
         items: [
           { text: 'CachyOS Wiki', link: 'https://wiki.cachyos.org' },
@@ -436,9 +441,10 @@ export default defineConfig({
 
       '/scripts/': [
         {
-          text: 'Scripts',
+          text: 'Core Scripts',
           items: [
             { text: 'Overview', link: '/scripts/overview' },
+            { text: '00 · System Init', link: '/scripts/00-system-init' },
             { text: '00 · Setup Vault', link: '/scripts/00-setup-vault' },
             {
               text: '01 · Thermal Setup',
@@ -455,6 +461,21 @@ export default defineConfig({
               text: '06 · Unmount Vault',
               link: '/scripts/06-unmount-vault',
             },
+            { text: '99 · Verify Install', link: '/scripts/99-verify-install' },
+          ],
+        },
+      ],
+
+      '/workstation/': [
+        {
+          text: 'Workstation',
+          items: [
+            { text: 'Overview', link: '/workstation/overview' },
+            { text: '00 · AI Dev Stack', link: '/workstation/00-ai-dev-workstation' },
+            { text: '10 · GNOME Speed', link: '/workstation/10-gnome-productivity' },
+            { text: '20 · DevOps Tools', link: '/workstation/20-devops-tools' },
+            { text: '30 · Security Tools', link: '/workstation/30-security-tools' },
+            { text: '40 · Dotfiles Link', link: '/workstation/40-dotfiles-link' },
           ],
         },
       ],

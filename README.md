@@ -33,18 +33,14 @@ Field-tested scripts and configuration for installing and optimising [CachyOS](h
 git clone https://github.com/sebastienrousseau/cachyos-macbook-intel-2020.git
 cd cachyos-macbook-intel-2020
 
-# Fix thermal throttling (run immediately after install)
-make thermal
+# Run the interactive Iceunit (ICU) installer (requires Go)
+sudo make install
 
-# Apply system optimisations
-make optimise
-
-# Preview changes without modifying the system
-make thermal DRY_RUN=1
-
-# Or run everything via the interactive installer (requires Go)
-make install
+# Audit your system state at any time
+make verify
 ```
+
+The new installer features a beautiful, interactive CLI interface built with Go and Bubble Tea, automatically executing the post-installation optimization steps concurrently where possible.
 
 ---
 
@@ -52,57 +48,84 @@ make install
 
 ```
 cachyos-macbook-intel-2020/
-├── installer/                   # Go-based interactive Bubble Tea installer
-├── scripts/
-│   ├── 00-setup-vault.sh        # LUKS2 encrypted code vault creation
-│   ├── 01-thermal-setup.sh      # Fan & thermal control (run first)
-│   ├── 02-wifi-firmware.sh      # Wi-Fi & Bluetooth firmware management
-│   ├── 03-optimise.sh           # Post-install system optimisation
-│   ├── 04-bootloader.sh         # Limine + rEFInd boot management
-│   ├── 05-mount-vault.sh        # Unlock and mount code vault
-│   └── 06-unmount-vault.sh      # Lock and unmount code vault
-├── tests/
-│   ├── *.bats                   # 136 unit tests (bats-core)
-│   ├── test_helper.bash         # Shared setup, mock framework
-│   ├── Dockerfile.unit          # Arch Linux unit test container
-│   ├── Dockerfile.integration   # Arch Linux integration test container
-│   └── integration/             # Integration test scripts
+├── .github/                     # GitHub Actions workflows
+├── config/                      # System configuration drop-ins
 ├── docs/                        # VitePress documentation site
-├── .github/workflows/           # CI: ShellCheck, unit & integration tests
-├── Makefile                     # Build, test, lint, and docs targets
-├── SECURITY.md                  # Security policy
+├── installer/                   # Go-based interactive Iceunit installer
+│   ├── main.go                  # TUI orchestrator source
+│   ├── main_test.go             # Installer unit tests
+│   ├── go.mod                   # Go module definition
+│   └── installer_bin            # Compiled installer binary
+├── scripts/                     # Core hardware automation scripts
+│   ├── 00-setup-vault.sh        # Encrypted vault creation
+│   ├── 00-system-init.sh        # Smart package synchronisation
+│   ├── 01-thermal-setup.sh      # Fan & thermal control
+│   ├── 02-wifi-firmware.sh      # Wi-Fi & Bluetooth firmware
+│   ├── 03-optimise.sh           # Post-install optimisation
+│   ├── 04-bootloader.sh         # Bootloader management
+│   ├── 05-mount-vault.sh        # Unlock and mount vault
+│   ├── 06-unmount-vault.sh      # Lock and unmount vault
+│   └── 99-verify-install.sh     # System health audit
+├── tests/                       # Unit and integration test suites
+│   ├── *.bats                   # 144 unit tests (bats-core)
+│   ├── Dockerfile.unit          # Unit test container
+│   ├── Dockerfile.integration   # Integration test container
+│   ├── setup-bats.sh            # BATS installation helper
+│   ├── test_helper.bash         # Test framework & mocks
+│   └── integration/             # Integration test scripts
+├── workstation/                 # Workstation provisioning modules
+│   ├── 00-ai-dev-workstation.sh # AI/LLM & Dev stack
+│   ├── 10-gnome-productivity.sh # GNOME UI tweaks
+│   ├── 20-devops-tools.sh       # K8s & Cloud-native tools
+│   ├── 30-security-tools.sh     # Firewall & Secrets hardening
+│   └── 40-dotfiles-link.sh      # Symbolic configuration links
+├── bootstrap-dotfiles.sh        # Dotfiles bootstrap helper
+├── install.sh                   # Unified Iceunit (ICU) installer entry point
+├── Makefile                     # Task runner for install, verify, and test
+├── README.md                    # Project documentation
+├── LICENSE                      # MIT licence
 ├── CONTRIBUTING.md              # Contribution guidelines
-└── LICENSE                      # MIT licence
+├── SECURITY.md                  # Security policy
+└── package.json                 # Documentation site dependencies
 ```
 
 ## Scripts
 
-| Script | Purpose | Run As | Docs |
-|---|---|---|---|
-| `00-setup-vault.sh` | Create LUKS2 encrypted vault | `make vault` | [Reference](https://iceunit.com/scripts/00-setup-vault) |
-| `01-thermal-setup.sh` | Fix fan/thermal control | `make thermal` | [Reference](https://iceunit.com/scripts/01-thermal-setup) |
-| `02-wifi-firmware.sh` | Manage Wi-Fi/BT firmware | `make wifi` | [Reference](https://iceunit.com/scripts/02-wifi-firmware) |
-| `03-optimise.sh` | System-wide optimisation | `make optimise` | [Reference](https://iceunit.com/scripts/03-optimise) |
-| `04-bootloader.sh` | Limine & boot management | `make bootloader` | [Reference](https://iceunit.com/scripts/04-bootloader) |
-| `05-mount-vault.sh` | Unlock and mount vault | `make mount` | [Reference](https://iceunit.com/scripts/05-mount-vault) |
-| `06-unmount-vault.sh` | Lock and unmount vault | `make unmount` | [Reference](https://iceunit.com/scripts/06-unmount-vault) |
+| Script | Purpose | Status | Run As | Docs |
+|---|---|---|---|---|
+| `00-setup-vault.sh` | Create LUKS2 encrypted vault | Optional | `make vault` | [Reference](https://iceunit.com/scripts/00-setup-vault) |
+| `00-system-init.sh` | Smart package sync | **Mandatory** | `sudo make init` | [Reference](https://iceunit.com/scripts/00-system-init) |
+| `01-thermal-setup.sh` | Fix fan/thermal control | **Mandatory** | `make thermal` | [Reference](https://iceunit.com/scripts/01-thermal-setup) |
+| `02-wifi-firmware.sh` | Manage Wi-Fi/BT firmware | **Mandatory** | `make wifi` | [Reference](https://iceunit.com/scripts/02-wifi-firmware) |
+| `03-optimise.sh` | System-wide optimisation | Recommended | `make optimise` | [Reference](https://iceunit.com/scripts/03-optimise) |
+| `04-bootloader.sh` | Limine & boot management | Recommended | `make bootloader` | [Reference](https://iceunit.com/scripts/04-bootloader) |
+| `05-mount-vault.sh` | Unlock and mount vault | Optional | `make mount` | [Reference](https://iceunit.com/scripts/05-mount-vault) |
+| `06-unmount-vault.sh` | Lock and unmount vault | Optional | `make unmount` | [Reference](https://iceunit.com/scripts/06-unmount-vault) |
+| `99-verify-install.sh` | System health audit | Recommended | `make verify` | [Reference](https://iceunit.com/scripts/99-verify-install) |
 
-All scripts support `DRY_RUN=1` to preview changes (e.g. `make thermal DRY_RUN=1`) and `--help` for usage information.
+All scripts support `DRY_RUN=1` to preview changes and `--help` for usage information.
+
+## Workstation Scripts
+
+| Script | Purpose | Status | Run As | Docs |
+|---|---|---|---|---|
+| `00-ai-dev-workstation.sh` | AI/LLM & Dev Stack | Optional | `sudo` | [Reference](https://iceunit.com/workstation/00-ai-dev-workstation) |
+| `10-gnome-productivity.sh` | GNOME Speed & UI Tweaks | Optional | User | [Reference](https://iceunit.com/workstation/10-gnome-productivity) |
+| `20-devops-tools.sh` | K8s & Terraform Stack | Optional | `sudo` | [Reference](https://iceunit.com/workstation/20-devops-tools) |
+| `30-security-tools.sh` | Firewall & Secrets | Optional | `sudo` | [Reference](https://iceunit.com/workstation/30-security-tools) |
+| `40-dotfiles-link.sh` | Symbolic Config Links | Optional | User | [Reference](https://iceunit.com/workstation/40-dotfiles-link) |
 
 ---
 
-## Testing
+## Testing & Verification
 
 ```bash
-make test-all           # Lint + unit + Go + Docker + integration tests
-make lint               # ShellCheck + Go vet
-make test               # Unit tests locally (requires bats-core)
-make test-go            # Go unit tests for the installer
-make test-docker        # Unit tests in Arch Linux Docker
-make test-integration   # Integration tests in Arch Linux Docker
+make verify             # Run the Iceunit system health audit
+make test-all           # Run all tests (Lint, BATS, Go, Docker)
+make lint               # Run ShellCheck and Go vet/fmt
+make test               # Run unit tests locally (requires bats-core)
+make test-go            # Run Go unit tests for the installer
 ```
-
-CI runs all checks automatically on every push and pull request. Run `make help` to see all available targets.
 
 ---
 
@@ -115,26 +138,13 @@ The full guide is hosted at **[iceunit.com](https://iceunit.com)** and covers:
 - **Installation** — running the CachyOS installer, Limine bootloader setup
 - **Post-Installation** — thermal setup, system optimisation, encrypted vault
 - **Reference** — troubleshooting, FAQ
-- **Scripts** — detailed reference for all 7 scripts
+- **Scripts** — detailed reference for all modules
 
 ---
 
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for script conventions, ShellCheck requirements, and the PR process.
-
-## Security
-
-See [SECURITY.md](SECURITY.md) for the responsible disclosure process and security considerations.
-
-## References
-
-- [CachyOS T2 MacBook Installation Wiki](https://wiki.cachyos.org/installation/installation_t2macbook/)
-- [T2 Linux Project](https://t2linux.org)
-- [t2linux Wi-Fi Firmware Guide](https://wiki.t2linux.org/guides/wifi-bluetooth/)
-- [apple-bce kernel module](https://github.com/t2linux/apple-bce-drv)
-- [mbpfan](https://github.com/linux-on-mac/mbpfan)
-- [arch-mact2 firmware mirror](https://mirror.funami.tech/arch-mact2/)
 
 ## Licence
 

@@ -25,22 +25,15 @@ teardown() {
 # ── preflight ────────────────────────────────────────────────────────────────
 
 @test "preflight: passes when all requirements met" {
-    # command -v will find mocked cryptsetup and mkfs.btrfs
-
     run preflight
-
     [ "$status" -eq 0 ]
     [[ "$output" == *"All checks passed"* ]]
 }
 
 @test "preflight: errors if cryptsetup missing" {
-    # Remove cryptsetup from PATH
     rm -f "${MOCK_BIN}/cryptsetup"
-    # Set restrictive PATH so real cryptsetup isn't found
     export PATH="${MOCK_BIN}"
-
     run preflight
-
     [ "$status" -eq 1 ]
     [[ "$output" == *"cryptsetup not found"* ]]
 }
@@ -48,34 +41,27 @@ teardown() {
 @test "preflight: errors if mkfs.btrfs missing" {
     rm -f "${MOCK_BIN}/mkfs.btrfs"
     export PATH="${MOCK_BIN}"
-
     run preflight
-
     [ "$status" -eq 1 ]
     [[ "$output" == *"btrfs-progs not found"* ]]
 }
 
-@test "preflight: errors if vault image exists" {
-    touch "$HOME/.vault.img"
-
+@test "preflight: skips if vault image exists" {
+    touch "$TEST_HOME/.vault.img"
     run preflight
-
-    [ "$status" -eq 1 ]
-    [[ "$output" == *"already exists"* ]]
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"exists"* ]]
 }
 
-@test "preflight: errors if mount point already mounted" {
+@test "preflight: skips if mount point already mounted" {
     mock_command findmnt 0  # mounted
-
     run preflight
-
-    [ "$status" -eq 1 ]
-    [[ "$output" == *"already mounted"* ]]
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"mounted"* ]]
 }
 
 @test "preflight: uses findmnt not mount|grep" {
     run preflight
-
     assert_mock_called findmnt
 }
 
@@ -83,56 +69,48 @@ teardown() {
 
 @test "choose_size: accepts default size when input empty" {
     run_with_input '\ny\n' choose_size
-
     [ "$status" -eq 0 ]
     [[ "$output" == *"60G"* ]]
 }
 
 @test "choose_size: accepts custom valid size" {
     run_with_input '100G\ny\n' choose_size
-
     [ "$status" -eq 0 ]
     [[ "$output" == *"100G"* ]]
 }
 
 @test "choose_size: rejects zero size (0G)" {
     run_with_input '0G\n' choose_size
-
     [ "$status" -eq 1 ]
     [[ "$output" == *"Invalid size"* ]]
 }
 
 @test "choose_size: rejects invalid format" {
     run_with_input 'abc\n' choose_size
-
     [ "$status" -eq 1 ]
     [[ "$output" == *"Invalid size"* ]]
 }
 
 @test "choose_size: rejects 0M" {
     run_with_input '0M\n' choose_size
-
     [ "$status" -eq 1 ]
     [[ "$output" == *"Invalid size"* ]]
 }
 
 @test "choose_size: aborts on negative confirmation" {
     run_with_input '50G\nn\n' choose_size
-
     [ "$status" -eq 0 ]
     [[ "$output" == *"Aborted"* ]]
 }
 
 @test "choose_size: accepts lowercase 'g'" {
     run_with_input '50g\ny\n' choose_size
-
     [ "$status" -eq 0 ]
     [[ "$output" == *"50g"* ]]
 }
 
 @test "choose_size: accepts megabyte size" {
     run_with_input '512M\ny\n' choose_size
-
     [ "$status" -eq 0 ]
     [[ "$output" == *"512M"* ]]
 }
@@ -141,10 +119,8 @@ teardown() {
 
 @test "create_image: uses fallocate when available" {
     VAULT_SIZE="60G"
-    VAULT_IMG="$HOME/.vault.img"
-
+    VAULT_IMG="$TEST_HOME/.vault.img"
     run create_image
-
     [ "$status" -eq 0 ]
     [[ "$output" == *"Image created"* ]]
     assert_mock_called fallocate
@@ -155,10 +131,8 @@ teardown() {
     mock_command dd 0
     mock_command numfmt 0 "62914560000"
     VAULT_SIZE="60G"
-    VAULT_IMG="$HOME/.vault.img"
-
+    VAULT_IMG="$TEST_HOME/.vault.img"
     run create_image
-
     [ "$status" -eq 0 ]
     assert_mock_called dd
 }
@@ -167,10 +141,8 @@ teardown() {
     mock_command fallocate 1
     mock_command dd 1
     VAULT_SIZE="60G"
-    VAULT_IMG="$HOME/.vault.img"
-
+    VAULT_IMG="$TEST_HOME/.vault.img"
     run create_image
-
     [ "$status" -eq 1 ]
     [[ "$output" == *"Failed to create"* ]]
 }
@@ -178,10 +150,8 @@ teardown() {
 # ── format_luks ──────────────────────────────────────────────────────────────
 
 @test "format_luks: calls cryptsetup luksFormat with correct params" {
-    VAULT_IMG="$HOME/.vault.img"
-
+    VAULT_IMG="$TEST_HOME/.vault.img"
     run format_luks
-
     [ "$status" -eq 0 ]
     [[ "$output" == *"LUKS2 encryption applied"* ]]
     assert_mock_called_with sudo "cryptsetup luksFormat"
@@ -191,11 +161,9 @@ teardown() {
 
 @test "initialise_filesystem: opens, formats btrfs, mounts, chowns" {
     MAPPER_NAME="code_vault"
-    MOUNT_POINT="$HOME/Code"
-    VAULT_IMG="$HOME/.vault.img"
-
+    MOUNT_POINT="$TEST_HOME/Code"
+    VAULT_IMG="$TEST_HOME/.vault.img"
     run initialise_filesystem
-
     [ "$status" -eq 0 ]
     [[ "$output" == *"Vault mounted"* ]]
     assert_mock_called_with sudo "cryptsetup open"
@@ -208,22 +176,18 @@ teardown() {
 
 @test "verify: succeeds when mounted" {
     mock_command findmnt 0
-    MOUNT_POINT="$HOME/Code"
-    VAULT_IMG="$HOME/.vault.img"
-
+    MOUNT_POINT="$TEST_HOME/Code"
+    VAULT_IMG="$TEST_HOME/.vault.img"
     run verify
-
     [ "$status" -eq 0 ]
     [[ "$output" == *"mounted and ready"* ]]
 }
 
 @test "verify: errors when not mounted" {
     mock_command findmnt 1
-    MOUNT_POINT="$HOME/Code"
-    VAULT_IMG="$HOME/.vault.img"
-
+    MOUNT_POINT="$TEST_HOME/Code"
+    VAULT_IMG="$TEST_HOME/.vault.img"
     run verify
-
     [ "$status" -eq 1 ]
     [[ "$output" == *"verification failed"* ]]
 }
@@ -231,11 +195,9 @@ teardown() {
 # ── print_next_steps ─────────────────────────────────────────────────────────
 
 @test "print_next_steps: displays usage instructions" {
-    MOUNT_POINT="$HOME/Code"
-    VAULT_IMG="$HOME/.vault.img"
-
+    MOUNT_POINT="$TEST_HOME/Code"
+    VAULT_IMG="$TEST_HOME/.vault.img"
     run print_next_steps
-
     [ "$status" -eq 0 ]
     [[ "$output" == *"05-mount-vault.sh"* ]]
     [[ "$output" == *"06-unmount-vault.sh"* ]]

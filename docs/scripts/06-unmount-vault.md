@@ -4,7 +4,10 @@ description: 06-unmount-vault.sh unmounts and locks the LUKS2 encrypted code vau
 
 # 06-unmount-vault.sh
 
-Unmounts and locks the LUKS2 encrypted code vault. Unmounts `~/Code` and closes the `cryptsetup` container.
+**Status: Optional**
+
+Unmounts and locks the LUKS2 encrypted code vault.
+ Unmounts `~/Code` and closes the `cryptsetup` container.
 
 ## Usage
 

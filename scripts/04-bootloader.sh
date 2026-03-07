@@ -20,7 +20,11 @@
 set -euo pipefail
 
 DRY_RUN=false
-for arg in "$@"; do [[ "$arg" == "--dry-run" ]] && DRY_RUN=true; done
+ASSUME_YES=false
+for arg in "$@"; do
+    [[ "$arg" == "--dry-run" ]] && DRY_RUN=true
+    [[ "$arg" == "--yes" ]] && ASSUME_YES=true
+done
 
 # Wrapper for destructive commands
 dryrun() {
@@ -340,6 +344,12 @@ interactive() {
         *) error "Invalid choice" ;;
     esac
 }
+
+if [[ "${1:-}" == "--yes" ]] || [[ "$ASSUME_YES" == "true" ]]; then
+    # In non-interactive mode, we default to status check
+    show_status
+    exit 0
+fi
 
 case "${1:-}" in
     status)    show_status ;;

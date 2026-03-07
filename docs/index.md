@@ -44,4 +44,8 @@ features:
   - icon: 🐚
     title: Fish Shell Compatible
     details: All scripts use find instead of globs — tested and working from fish, bash, and zsh. No surprises when running from your preferred shell.
+
+  - icon: 🛠️
+    title: Workstation Provisioning
+    details: Complete workstation setup for AI, DevOps, and Security. From Neovim and Docker to Kubernetes and encrypted secrets management.
 ---

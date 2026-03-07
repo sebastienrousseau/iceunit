@@ -29,6 +29,8 @@ The default `thermald` configuration expects the fan to be at the traditional `a
 
 ## Running the Script
 
+This repository handles everything automatically through the interactive installer (`make install`), but if you want to run it manually:
+
 ```bash
 # Install as your normal user first (AUR helpers cannot run as root)
 paru -S mbpfan

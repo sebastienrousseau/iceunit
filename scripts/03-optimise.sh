@@ -15,7 +15,11 @@
 set -euo pipefail
 
 DRY_RUN=false
-for arg in "$@"; do [[ "$arg" == "--dry-run" ]] && DRY_RUN=true; done
+ASSUME_YES=false
+for arg in "$@"; do
+    [[ "$arg" == "--dry-run" ]] && DRY_RUN=true
+    [[ "$arg" == "--yes" ]] && ASSUME_YES=true
+done
 
 # Wrapper for destructive commands
 dryrun() {
@@ -169,8 +173,9 @@ SOUND_POWER_SAVE_ON_BAT=0
 SOUND_POWER_SAVE_CONTROLLER=N
 EOF
 
+    systemctl enable --now tlp 2>/dev/null || true
     systemctl restart tlp 2>/dev/null || true
-    success "TLP drop-in written to /etc/tlp.d/10-macbook-air-2020.conf"
+    success "TLP service enabled and drop-in written to /etc/tlp.d/10-macbook-air-2020.conf"
     info "Wi-Fi power management disabled (prevents BCM4377b disconnects)"
     info "USB autosuspend disabled (T2 BCE bridge stability)"
     mark_applied "tlp"
@@ -297,8 +302,8 @@ RemainAfterExit=yes
 WantedBy=suspend.target
 EOF
 
-    systemctl daemon-reload
-    systemctl enable macbook-suspend-fix.service
+    systemctl daemon-reload || true
+    systemctl enable macbook-suspend-fix.service || true
     success "Suspend resume fix service installed"
     info "This reloads apple-bce on wake to restore keyboard/trackpad if they freeze"
     mark_applied "sleep-suspend"
@@ -325,6 +330,15 @@ check_power_profiles() {
         local current
         current=$(powerprofilesctl get 2>/dev/null || echo "unknown")
         info "power-profiles-daemon is active, current profile: ${current}"
+        
+        if [[ "$ASSUME_YES" == "true" ]]; then
+            info "Non-interactive mode: masking power-profiles-daemon to favour TLP (recommended)"
+            dryrun systemctl mask --now power-profiles-daemon 2>/dev/null || true
+            dryrun systemctl enable --now tlp 2>/dev/null || true
+            mark_applied "power-profiles (masked PPD, enabled TLP)"
+            return
+        fi
+
         info "TLP and power-profiles-daemon are both running."
         warn "This can cause conflicts. Recommended: choose one."
         echo ""

@@ -20,7 +20,11 @@
 set -euo pipefail
 
 DRY_RUN=false
-for arg in "$@"; do [[ "$arg" == "--dry-run" ]] && DRY_RUN=true; done
+ASSUME_YES=false
+for arg in "$@"; do
+    [[ "$arg" == "--dry-run" ]] && DRY_RUN=true
+    [[ "$arg" == "--yes" ]] && ASSUME_YES=true
+done
 
 # Wrapper for destructive commands
 dryrun() {
@@ -40,9 +44,13 @@ warn()    { echo -e "${YELLOW}[WARN]${RESET}  $*"; }
 error()   { echo -e "${RED}[ERROR]${RESET} $*"; exit 1; }
 header()  { echo -e "\n${BOLD}${CYAN}══ $* ══${RESET}\n"; }
 
+# Detect real user even if running with sudo
+REAL_USER="${SUDO_USER:-${USER:-$(whoami)}}"
+REAL_HOME=$(getent passwd "$REAL_USER" | cut -d: -f6)
+
 MAPPER_NAME="code_vault"
-MOUNT_POINT="$HOME/Code"
-VAULT_IMG="$HOME/.vault.img"
+MOUNT_POINT="$REAL_HOME/Code"
+VAULT_IMG="$REAL_HOME/.vault.img"
 DEFAULT_SIZE="60G"
 
 # ── Preflight ─────────────────────────────────────────────────────────────────
@@ -53,11 +61,15 @@ preflight() {
     command -v mkfs.btrfs &>/dev/null || error "btrfs-progs not found. Install with: sudo pacman -S btrfs-progs"
 
     if [[ -f "$VAULT_IMG" ]]; then
-        error "Vault image already exists at ${VAULT_IMG}. If you want to recreate it, delete it first.\nTo just mount the existing vault: bash 05-mount-vault.sh"
+        warn "Vault image already exists at ${VAULT_IMG}."
+        info "To recreate it, delete it first. Skipping creation."
+        exit 0
     fi
 
     if findmnt -rno TARGET "$MOUNT_POINT" &>/dev/null; then
-        error "${MOUNT_POINT} is already mounted. Run 06-unmount-vault.sh first."
+        warn "${MOUNT_POINT} is already mounted."
+        info "Vault is already set up and active. Skipping."
+        exit 0
     fi
 
     success "All checks passed"
@@ -73,6 +85,12 @@ choose_size() {
     info "The vault is a fixed-size file. You cannot easily grow it later,"
     info "so choose generously. 60G is a good starting point for code repos."
     echo ""
+    if $ASSUME_YES; then
+        VAULT_SIZE="$DEFAULT_SIZE"
+        info "Non-interactive mode: using default size ${VAULT_SIZE}"
+        return 0
+    fi
+
     read -rp "Vault size [default: ${DEFAULT_SIZE}]: " input_size
     VAULT_SIZE="${input_size:-$DEFAULT_SIZE}"
 
@@ -104,6 +122,12 @@ create_image() {
 # ── LUKS2 format ──────────────────────────────────────────────────────────────
 format_luks() {
     header "Encrypting the Vault (LUKS2)"
+
+    if $ASSUME_YES; then
+        warn "Non-interactive mode: skipping LUKS encryption. No passphrase will be set."
+        warn "You should encrypt the vault later manually with: sudo cryptsetup luksFormat $VAULT_IMG"
+        return 0
+    fi
 
     echo ""
     warn "You will now set a passphrase for the vault."
@@ -139,7 +163,7 @@ initialise_filesystem() {
     sudo mount /dev/mapper/"$MAPPER_NAME" "$MOUNT_POINT"
 
     info "Taking ownership..."
-    sudo chown -R "$USER:$USER" "$MOUNT_POINT"
+    sudo chown -R "$REAL_USER:$REAL_USER" "$MOUNT_POINT"
 
     success "Vault mounted at ${MOUNT_POINT}"
 }

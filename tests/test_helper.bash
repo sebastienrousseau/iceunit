@@ -45,6 +45,9 @@ common_setup() {
 
     # Always mock sudo (just pass through)
     _create_sudo_mock
+
+    # Mock getent to return the test home
+    mock_command getent 0 "${USER}:x:1000:1000::${TEST_HOME}:/bin/bash"
 }
 
 common_teardown() {
@@ -117,7 +120,7 @@ mock_command_conditional() {
     cat > "${MOCK_BIN}/${cmd}" << ENDMOCK
 #!/usr/bin/env bash
 echo "\$*" >> "${MOCK_CALLS}/${cmd}"
-if echo "\$*" | grep -q "${pattern}"; then
+if echo "\$*" | /usr/bin/grep -q "${pattern}"; then
     ${output_match:+echo "${output_match}"}
     exit ${exit_match}
 else
@@ -184,6 +187,7 @@ prepare_script() {
         -e "s|/etc/|${TEST_TEMP}/etc/|g" \
         -e "s|/boot/|${TEST_TEMP}/boot/|g" \
         -e "s|/lib/firmware/|${TEST_TEMP}/lib/firmware/|g" \
+        -e "s|/usr/share/|${TEST_TEMP}/usr/share/|g" \
         -e "s|/sys/power/|${TEST_TEMP}/sys/power/|g" \
         -e "s|/sys/devices/|${TEST_TEMP}/sys/devices/|g" \
         -e "s|/proc/cmdline|${TEST_TEMP}/proc/cmdline|g" \
@@ -209,6 +213,13 @@ prepare_runnable_script() {
 
     sed \
         -e "s|/dev/mapper/|${TEST_TEMP}/dev_mapper/|g" \
+        -e "s|/etc/|${TEST_TEMP}/etc/|g" \
+        -e "s|/boot/|${TEST_TEMP}/boot/|g" \
+        -e "s|/lib/firmware/|${TEST_TEMP}/lib/firmware/|g" \
+        -e "s|/usr/share/|${TEST_TEMP}/usr/share/|g" \
+        -e "s|/sys/power/|${TEST_TEMP}/sys/power/|g" \
+        -e "s|/sys/devices/|${TEST_TEMP}/sys/devices/|g" \
+        -e "s|/proc/cmdline|${TEST_TEMP}/proc/cmdline|g" \
         "$script" > "$RUNNABLE_SCRIPT"
     chmod +x "$RUNNABLE_SCRIPT"
 }

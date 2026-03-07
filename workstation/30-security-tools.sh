@@ -1,13 +1,31 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-echo "=== Security Tooling Setup ==="
+DRY_RUN=false
+ASSUME_YES=false
+for arg in "$@"; do
+    [[ "$arg" == "--dry-run" ]] && DRY_RUN=true
+    [[ "$arg" == "--yes" ]] && ASSUME_YES=true
+done
 
-sudo pacman -Sy --needed --noconfirm gitleaks age sops openssh gnupg ufw
+# Wrapper for destructive commands
+dryrun() {
+    if $DRY_RUN; then
+        printf '\033[1;30m[DRY-RUN]\033[0m %s\n' "$*"
+    else
+        "$@"
+    fi
+}
+
+log()   { printf '[%s] %s\n' "$(date '+%H:%M:%S')" "$*"; }
+
+log "=== Security Tooling Setup ==="
+
+dryrun sudo pacman -Sy --needed --noconfirm gitleaks age sops openssh gnupg ufw
 
 # Enable firewall
-sudo systemctl enable --now ufw || true
-sudo ufw default deny incoming || true
-sudo ufw default allow outgoing || true
+dryrun sudo systemctl enable --now ufw || true
+dryrun sudo ufw default deny incoming || true
+dryrun sudo ufw default allow outgoing || true
 
-echo "Security tooling configured."
+log "Security tooling configured."

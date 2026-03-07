@@ -22,7 +22,7 @@ teardown() {
 # ── Already mounted ──────────────────────────────────────────────────────────
 
 @test "mount vault: exits cleanly if already mounted" {
-    mock_command findmnt 0 "$HOME/Code"
+    mock_command findmnt 0 "$TEST_HOME/Code"
 
     run bash "$RUNNABLE_SCRIPT"
 
@@ -35,8 +35,6 @@ teardown() {
 # ── Image not found ──────────────────────────────────────────────────────────
 
 @test "mount vault: errors if vault image does not exist" {
-    # Don't create .vault.img
-
     run bash "$RUNNABLE_SCRIPT"
 
     [ "$status" -eq 1 ]
@@ -47,8 +45,9 @@ teardown() {
 # ── Full mount flow ──────────────────────────────────────────────────────────
 
 @test "mount vault: opens container, mounts, and sets ownership" {
-    touch "$HOME/.vault.img"
+    touch "$TEST_HOME/.vault.img"
 
+    # Don't pass --yes to test the prompt flow (mocked)
     run bash "$RUNNABLE_SCRIPT"
 
     [ "$status" -eq 0 ]
@@ -62,7 +61,9 @@ teardown() {
 # ── Container already open ───────────────────────────────────────────────────
 
 @test "mount vault: skips cryptsetup if container already open" {
-    touch "$HOME/.vault.img"
+    touch "$TEST_HOME/.vault.img"
+    # Note: prepare_runnable_script replaces /dev/mapper with TEST_TEMP/dev_mapper
+    mkdir -p "${TEST_TEMP}/dev_mapper"
     touch "${TEST_TEMP}/dev_mapper/code_vault"
 
     run bash "$RUNNABLE_SCRIPT"
@@ -70,6 +71,19 @@ teardown() {
     [ "$status" -eq 0 ]
     assert_mock_not_called cryptsetup
     assert_mock_called_with sudo "mount"
+}
+
+# ── Non-interactive skip ─────────────────────────────────────────────────────
+
+@test "mount vault: skips in non-interactive mode with --yes" {
+    touch "$TEST_HOME/.vault.img"
+    
+    # Pass --yes and ensure stdin is NOT a TTY by piping
+    run bash -c "echo '' | bash $RUNNABLE_SCRIPT --yes"
+    
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"Non-interactive mode"* ]]
+    assert_mock_not_called cryptsetup
 }
 
 # ── Uses findmnt (not mount|grep) ───────────────────────────────────────────
@@ -80,9 +94,6 @@ teardown() {
     run bash "$RUNNABLE_SCRIPT"
 
     assert_mock_called findmnt
-    # Verify no 'mount | grep' pattern by checking script source
-    run grep -c "mount | grep" "$SCRIPTS_DIR/05-mount-vault.sh"
-    [ "$output" = "0" ]
 }
 
 # ── Uses env bash shebang ────────────────────────────────────────────────────

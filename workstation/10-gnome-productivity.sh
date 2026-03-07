@@ -1,25 +1,43 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-echo "=== GNOME Productivity Setup ==="
+DRY_RUN=false
+ASSUME_YES=false
+for arg in "$@"; do
+    [[ "$arg" == "--dry-run" ]] && DRY_RUN=true
+    [[ "$arg" == "--yes" ]] && ASSUME_YES=true
+done
+
+# Wrapper for destructive commands
+dryrun() {
+    if $DRY_RUN; then
+        printf '\033[1;30m[DRY-RUN]\033[0m %s\n' "$*"
+    else
+        "$@"
+    fi
+}
+
+log()   { printf '[%s] %s\n' "$(date '+%H:%M:%S')" "$*"; }
+
+log "=== GNOME Productivity Setup ==="
 
 if ! command -v gsettings >/dev/null 2>&1; then
-  echo "GNOME not detected, skipping."
+  log "GNOME not detected, skipping."
   exit 0
 fi
 
 # Faster UI
-gsettings set org.gnome.desktop.interface enable-animations false || true
+dryrun gsettings set org.gnome.desktop.interface enable-animations false || true
 
 # Focus follows mouse (optional productivity preference)
-gsettings set org.gnome.desktop.wm.preferences focus-mode 'sloppy' || true
+dryrun gsettings set org.gnome.desktop.wm.preferences focus-mode 'sloppy' || true
 
 # Workspace shortcuts
-gsettings set org.gnome.desktop.wm.keybindings switch-to-workspace-1 "['<Super>1']"
-gsettings set org.gnome.desktop.wm.keybindings switch-to-workspace-2 "['<Super>2']"
-gsettings set org.gnome.desktop.wm.keybindings switch-to-workspace-3 "['<Super>3']"
+dryrun gsettings set org.gnome.desktop.wm.keybindings switch-to-workspace-1 "['<Super>1']"
+dryrun gsettings set org.gnome.desktop.wm.keybindings switch-to-workspace-2 "['<Super>2']"
+dryrun gsettings set org.gnome.desktop.wm.keybindings switch-to-workspace-3 "['<Super>3']"
 
 # Launch terminal with Super+Return
-gsettings set org.gnome.settings-daemon.plugins.media-keys terminal "['<Super>Return']" || true
+dryrun gsettings set org.gnome.settings-daemon.plugins.media-keys terminal "['<Super>Return']" || true
 
-echo "GNOME productivity configuration applied."
+log "GNOME productivity configuration applied."

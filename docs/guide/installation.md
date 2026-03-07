@@ -42,11 +42,16 @@ The first thing to do after logging in:
 # Update the system
 sudo pacman -Syu
 
+# Install Go (required for the new installer)
+sudo pacman -S go
+
 # Clone the scripts repo
 git clone https://github.com/sebastienrousseau/cachyos-macbook-intel-2020.git
 cd cachyos-macbook-intel-2020
 
-# Fix thermals immediately — your CPU may already be running hot
-paru -S mbpfan
-sudo bash scripts/01-thermal-setup.sh
+# Run the interactive Iceunit (ICU) installer for automated setup
+make install
+
+# Finally, verify your system health
+make verify
 ```

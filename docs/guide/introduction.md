@@ -43,11 +43,8 @@ Your CPU can sustain 100°C at near-idle fan speeds without intervention. This i
 :::
 
 ```bash
-# 1. Fix thermals immediately
-sudo bash scripts/01-thermal-setup.sh
-
-# 2. Then optimise the rest
-sudo bash scripts/03-optimise.sh
+# Run the unified interactive Bubble Tea installer (requires Go)
+make install
 ```
 
 For a fresh install, start with [Disable T2 Security](/guide/disable-t2-security).

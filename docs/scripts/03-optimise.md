@@ -4,7 +4,10 @@ description: 03-optimise.sh applies kernel params, sysctl tuning, TLP power mana
 
 # 03-optimise.sh
 
-Applies post-install system optimisations for the MacBook Air 2020 running CachyOS. Covers kernel parameters, sysctl tuning, TLP power management, PipeWire audio, BTRFS options, suspend/resume, and package installation.
+**Status: Recommended**
+
+Applies post-install system optimisations for the MacBook Air 2020 running CachyOS.
+ Covers kernel parameters, sysctl tuning, TLP power management, PipeWire audio, BTRFS options, suspend/resume, and package installation.
 
 ## Usage
 

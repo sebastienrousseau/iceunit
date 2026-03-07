@@ -8,6 +8,14 @@ The `03-optimise.sh` script applies post-install optimisations specific to the M
 
 ## Running
 
+The optimisation script is now included in the unified interactive installer. You can run everything at once with:
+
+```bash
+make install
+```
+
+If you prefer to run it individually:
+
 ```bash
 # Full optimisation (kernel, TLP, BTRFS, sleep, packages)
 sudo bash scripts/03-optimise.sh
