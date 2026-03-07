@@ -6,6 +6,7 @@ docs/.vitepress/cache/
 *.swo
 *~
 *.bak
+*~
 .env
 .env.local
 tests/lib/
