@@ -40,16 +40,11 @@ Scripts are invoked with `sudo bash scripts/01-thermal-setup.sh` — always spec
 All scripts are covered by 136 unit tests using [bats-core](https://github.com/bats-core/bats-core) and integration tests running in Arch Linux Docker containers.
 
 ```bash
-# Run unit tests locally
-bats tests/*.bats
-
-# Run unit tests in Docker (Arch Linux)
-docker build -f tests/Dockerfile.unit -t cachyos-unit-tests .
-docker run --rm cachyos-unit-tests
-
-# Run integration tests in Docker (Arch Linux)
-docker build -f tests/Dockerfile.integration -t cachyos-integration-tests .
-docker run --rm cachyos-integration-tests
+make test-all           # Lint + unit tests (Docker) + integration tests (Docker)
+make lint               # ShellCheck only
+make test               # Unit tests locally (requires bats-core)
+make test-docker        # Unit tests in Arch Linux Docker
+make test-integration   # Integration tests in Arch Linux Docker
 ```
 
-CI runs ShellCheck, unit tests, and integration tests on every push and pull request.
+Run `make help` to see all available targets. CI runs ShellCheck, unit tests, and integration tests on every push and pull request.

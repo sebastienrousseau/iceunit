@@ -38,6 +38,9 @@ sudo bash scripts/01-thermal-setup.sh
 
 # Apply system optimisations
 sudo bash scripts/03-optimise.sh
+
+# Or run everything at once
+make install
 ```
 
 ---
@@ -62,6 +65,7 @@ cachyos-macbook-intel-2020/
 │   └── integration/             # Integration test scripts
 ├── docs/                        # VitePress documentation site
 ├── .github/workflows/           # CI: ShellCheck, unit & integration tests
+├── Makefile                     # Build, test, lint, and docs targets
 ├── SECURITY.md                  # Security policy
 ├── CONTRIBUTING.md              # Contribution guidelines
 └── LICENSE                      # MIT licence
@@ -85,25 +89,19 @@ All scripts support `--dry-run` to preview changes without modifying the system,
 
 ## Testing
 
-The project includes a comprehensive test suite:
+The project includes a comprehensive test suite. Use `make` targets or run commands directly:
 
 ```bash
-# Static analysis
-shellcheck scripts/*.sh
-
-# Unit tests (136 tests, requires bats-core)
-bats tests/*.bats
-
-# Unit tests in Docker (Arch Linux)
-docker build -f tests/Dockerfile.unit -t cachyos-unit-tests .
-docker run --rm cachyos-unit-tests
-
-# Integration tests in Docker (Arch Linux with real packages)
-docker build -f tests/Dockerfile.integration -t cachyos-integration-tests .
-docker run --rm cachyos-integration-tests
+make test-all           # Lint + unit tests + integration tests
+make lint               # ShellCheck only
+make test               # Unit tests locally (requires bats-core)
+make test-docker        # Unit tests in Arch Linux Docker
+make test-integration   # Integration tests in Arch Linux Docker
 ```
 
 CI runs ShellCheck, unit tests, and integration tests automatically on every push and pull request that touches `scripts/` or `tests/`.
+
+Run `make help` to see all available targets.
 
 ---
 

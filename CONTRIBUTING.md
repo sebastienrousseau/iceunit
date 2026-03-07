@@ -35,17 +35,14 @@ The project uses [bats-core](https://github.com/bats-core/bats-core) for unit te
 ### Running Tests Locally
 
 ```bash
-# Unit tests (requires bats-core, bats-support, bats-assert)
-bats tests/*.bats
-
-# Unit tests in Docker (Arch Linux — no local dependencies required)
-docker build -f tests/Dockerfile.unit -t cachyos-unit-tests .
-docker run --rm cachyos-unit-tests
-
-# Integration tests in Docker (Arch Linux with real packages)
-docker build -f tests/Dockerfile.integration -t cachyos-integration-tests .
-docker run --rm cachyos-integration-tests
+make test-all           # Lint + unit tests (Docker) + integration tests (Docker)
+make lint               # ShellCheck only
+make test               # Unit tests locally (requires bats-core)
+make test-docker        # Unit tests in Arch Linux Docker
+make test-integration   # Integration tests in Arch Linux Docker
 ```
+
+Run `make help` to see all available targets.
 
 ### Writing Tests
 
