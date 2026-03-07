@@ -34,12 +34,15 @@ git clone https://github.com/sebastienrousseau/cachyos-macbook-intel-2020.git
 cd cachyos-macbook-intel-2020
 
 # Fix thermal throttling (run immediately after install)
-sudo bash scripts/01-thermal-setup.sh
+make thermal
 
 # Apply system optimisations
-sudo bash scripts/03-optimise.sh
+make optimise
 
-# Or run everything at once
+# Preview changes without modifying the system
+make thermal DRY_RUN=1
+
+# Or run everything via the interactive installer (requires Go)
 make install
 ```
 
@@ -49,6 +52,7 @@ make install
 
 ```
 cachyos-macbook-intel-2020/
+├── installer/                   # Go-based interactive Bubble Tea installer
 ├── scripts/
 │   ├── 00-setup-vault.sh        # LUKS2 encrypted code vault creation
 │   ├── 01-thermal-setup.sh      # Fan & thermal control (run first)
@@ -75,33 +79,30 @@ cachyos-macbook-intel-2020/
 
 | Script | Purpose | Run As | Docs |
 |---|---|---|---|
-| `00-setup-vault.sh` | Create LUKS2 encrypted vault | `bash` | [Reference](https://iceunit.com/scripts/00-setup-vault) |
-| `01-thermal-setup.sh` | Fix fan/thermal control | `sudo bash` | [Reference](https://iceunit.com/scripts/01-thermal-setup) |
-| `02-wifi-firmware.sh` | Manage Wi-Fi/BT firmware | `bash` | [Reference](https://iceunit.com/scripts/02-wifi-firmware) |
-| `03-optimise.sh` | System-wide optimisation | `sudo bash` | [Reference](https://iceunit.com/scripts/03-optimise) |
-| `04-bootloader.sh` | Limine & boot management | `sudo bash` | [Reference](https://iceunit.com/scripts/04-bootloader) |
-| `05-mount-vault.sh` | Unlock and mount vault | `bash` | [Reference](https://iceunit.com/scripts/05-mount-vault) |
-| `06-unmount-vault.sh` | Lock and unmount vault | `bash` | [Reference](https://iceunit.com/scripts/06-unmount-vault) |
+| `00-setup-vault.sh` | Create LUKS2 encrypted vault | `make vault` | [Reference](https://iceunit.com/scripts/00-setup-vault) |
+| `01-thermal-setup.sh` | Fix fan/thermal control | `make thermal` | [Reference](https://iceunit.com/scripts/01-thermal-setup) |
+| `02-wifi-firmware.sh` | Manage Wi-Fi/BT firmware | `make wifi` | [Reference](https://iceunit.com/scripts/02-wifi-firmware) |
+| `03-optimise.sh` | System-wide optimisation | `make optimise` | [Reference](https://iceunit.com/scripts/03-optimise) |
+| `04-bootloader.sh` | Limine & boot management | `make bootloader` | [Reference](https://iceunit.com/scripts/04-bootloader) |
+| `05-mount-vault.sh` | Unlock and mount vault | `make mount` | [Reference](https://iceunit.com/scripts/05-mount-vault) |
+| `06-unmount-vault.sh` | Lock and unmount vault | `make unmount` | [Reference](https://iceunit.com/scripts/06-unmount-vault) |
 
-All scripts support `--dry-run` to preview changes without modifying the system, and `--help` for usage information.
+All scripts support `DRY_RUN=1` to preview changes (e.g. `make thermal DRY_RUN=1`) and `--help` for usage information.
 
 ---
 
 ## Testing
 
-The project includes a comprehensive test suite. Use `make` targets or run commands directly:
-
 ```bash
-make test-all           # Lint + unit tests + integration tests
-make lint               # ShellCheck only
+make test-all           # Lint + unit + Go + Docker + integration tests
+make lint               # ShellCheck + Go vet
 make test               # Unit tests locally (requires bats-core)
+make test-go            # Go unit tests for the installer
 make test-docker        # Unit tests in Arch Linux Docker
 make test-integration   # Integration tests in Arch Linux Docker
 ```
 
-CI runs ShellCheck, unit tests, and integration tests automatically on every push and pull request that touches `scripts/` or `tests/`.
-
-Run `make help` to see all available targets.
+CI runs all checks automatically on every push and pull request. Run `make help` to see all available targets.
 
 ---
 

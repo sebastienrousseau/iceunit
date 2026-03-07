@@ -23,7 +23,7 @@ All scripts must pass [ShellCheck](https://www.shellcheck.net/). The CI pipeline
 Run locally before submitting:
 
 ```bash
-shellcheck scripts/*.sh
+make lint
 ```
 
 A `.shellcheckrc` is included in the repository root with project-wide defaults.
@@ -35,9 +35,10 @@ The project uses [bats-core](https://github.com/bats-core/bats-core) for unit te
 ### Running Tests Locally
 
 ```bash
-make test-all           # Lint + unit tests (Docker) + integration tests (Docker)
-make lint               # ShellCheck only
+make test-all           # Lint + unit + Go + Docker + integration tests
+make lint               # ShellCheck + Go vet
 make test               # Unit tests locally (requires bats-core)
+make test-go            # Go unit tests for the installer
 make test-docker        # Unit tests in Arch Linux Docker
 make test-integration   # Integration tests in Arch Linux Docker
 ```
@@ -63,8 +64,9 @@ The documentation site is built with [VitePress](https://vitepress.dev/) and liv
 
 ```bash
 npm install
-npm run docs:dev     # Start dev server at localhost:5173
-npm run docs:build   # Build for production
+make docs            # Start dev server at localhost:5173
+make docs-build      # Build for production
+make docs-preview    # Build and preview
 ```
 
 ### Writing Script Docs
@@ -83,9 +85,9 @@ Each script has a corresponding page at `docs/scripts/<name>.md`. Follow the exi
 
 1. Fork the repository and create a branch from `main`
 2. Make your changes following the conventions above
-3. Ensure `shellcheck scripts/*.sh` passes
-4. Ensure `bats tests/*.bats` passes (or run via Docker)
-5. Ensure `npm run docs:build` succeeds if you changed documentation
+3. Ensure `make lint` passes
+4. Ensure `make test` passes (or `make test-docker`)
+5. Ensure `make docs-build` succeeds if you changed documentation
 6. Submit a pull request with a clear description of the change and its motivation
 7. One approval from a maintainer is required before merging
 
