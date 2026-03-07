@@ -1,3 +1,7 @@
+---
+description: Step-by-step CachyOS installation on the MacBook Air 2020 using Calamares with dual-boot macOS partition guidance.
+---
+
 # Running the Installer
 
 ## CachyOS Hello / Calamares

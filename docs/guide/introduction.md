@@ -1,3 +1,7 @@
+---
+description: Overview of CachyOS on the MacBook Air 2020 with field-tested solutions for thermal, Wi-Fi firmware, fish shell, and apple_bce issues.
+---
+
 # Introduction
 
 This guide documents a complete, field-tested installation and optimisation of [CachyOS](https://cachyos.org) on a **2020 Intel MacBook Air (MacBookAir9,1)**. Every configuration detail has been verified on a live running system.

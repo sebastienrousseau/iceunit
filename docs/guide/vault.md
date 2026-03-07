@@ -1,3 +1,7 @@
+---
+description: Create and manage a LUKS2-encrypted BTRFS loopback vault for source code on CachyOS MacBook Air 2020.
+---
+
 # Encrypted Code Vault
 
 The vault is a LUKS2-encrypted BTRFS loopback image used to store source code and sensitive project files. It lives at `~/.vault.img` and mounts to `~/Code`.

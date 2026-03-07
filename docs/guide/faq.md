@@ -1,3 +1,7 @@
+---
+description: FAQ about running CachyOS on the MacBook Air 2020 covering model compatibility, Touch ID, dual-boot, kernel updates, and AUR helpers.
+---
+
 # FAQ
 
 ## Can I use this guide on a different MacBook model?

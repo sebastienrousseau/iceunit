@@ -1,4 +1,6 @@
 ---
+description: This page has moved to the troubleshooting guide.
+noindex: true
 redirect: /guide/troubleshooting
 ---
 

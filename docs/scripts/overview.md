@@ -1,3 +1,7 @@
+---
+description: Overview of CachyOS MacBook Air 2020 automation scripts with run order, design principles, and shell compatibility.
+---
+
 # Scripts Overview
 
 All scripts live in the `scripts/` directory of the repository. They are numbered to indicate the recommended run order.

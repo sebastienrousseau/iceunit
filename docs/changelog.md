@@ -1,3 +1,7 @@
+---
+description: Release history and known issues for CachyOS MacBook Air 2020 scripts and configuration.
+---
+
 # Changelog
 
 ## v1.0.0 — March 2026

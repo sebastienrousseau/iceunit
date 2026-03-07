@@ -1,3 +1,7 @@
+---
+description: 00-setup-vault.sh creates a LUKS2-encrypted BTRFS loopback container for source code on CachyOS MacBook Air 2020.
+---
+
 # 00-setup-vault.sh
 
 First-time creation of a LUKS2-encrypted BTRFS loopback container for securing source code and secrets. The vault lives at `~/.vault.img` and mounts at `~/Code`. Run this script **once** on a fresh install.

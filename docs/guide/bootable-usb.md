@@ -1,3 +1,7 @@
+---
+description: Create a bootable CachyOS USB and boot the MacBook Air 2020 from external media using the Option key.
+---
+
 # Create Bootable USB
 
 ## Download CachyOS

@@ -1,3 +1,7 @@
+---
+description: Disable Apple T2 Startup Security and allow external boot on the MacBook Air 2020 for CachyOS installation.
+---
+
 # Disable T2 Security
 
 Before installing any non-Apple OS, you must lower the Startup Security level in macOS Recovery. The T2 chip enforces boot policy — without this step, Limine and CachyOS will not boot.

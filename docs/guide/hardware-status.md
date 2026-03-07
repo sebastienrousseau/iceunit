@@ -1,3 +1,7 @@
+---
+description: Compatibility table for all MacBook Air 2020 hardware on CachyOS including Wi-Fi, audio, trackpad, webcam, and Thunderbolt.
+---
+
 # Hardware Status
 
 Current compatibility status on CachyOS kernel 6.19.x.

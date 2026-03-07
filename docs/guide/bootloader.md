@@ -1,3 +1,7 @@
+---
+description: Configure Limine with limine-snapper-sync for BTRFS snapshot booting and optional rEFInd dual-boot on the MacBook Air 2020.
+---
+
 # Bootloader: Limine
 
 ## Overview

@@ -1,3 +1,7 @@
+---
+description: Hardware specifications for the MacBook Air 2020 including Intel Ice Lake CPU, Apple T2 chip, BCM4377b Wi-Fi, and ACPI fan path.
+---
+
 # Hardware Specifications
 
 ## Target Hardware

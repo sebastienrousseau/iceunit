@@ -1,3 +1,7 @@
+---
+description: Post-install optimisation for the MacBook Air 2020 with kernel parameters, TLP, PipeWire audio, sysctl tuning, and suspend fix.
+---
+
 # System Optimisation
 
 The `03-optimise.sh` script applies post-install optimisations specific to the MacBook Air 2020 running CachyOS. It can be run as root for full system tuning, or as a normal user for audio-only configuration.

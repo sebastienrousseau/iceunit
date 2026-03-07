@@ -1,3 +1,7 @@
+---
+description: 02-wifi-firmware.sh manages Broadcom BCM4377b Wi-Fi and Bluetooth firmware with verify, backup, restore, and install.
+---
+
 # 02-wifi-firmware.sh
 
 Manages Broadcom BCM4377b Wi-Fi and BRCM4377 Bluetooth firmware for the MacBook Air 2020. Provides verification, backup, restore, and re-installation capabilities.

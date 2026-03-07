@@ -1,4 +1,5 @@
 ---
+description: Complete guide to installing and optimising CachyOS on the 2020 Intel MacBook Air with T2 chip. Thermal fixes, Wi-Fi firmware, encrypted vault, and Limine bootloader.
 layout: home
 
 hero:

@@ -1,3 +1,7 @@
+---
+description: 04-bootloader.sh provides Limine management, EFI boot order, optional rEFInd, and BTRFS snapshot boot guidance.
+---
+
 # 04-bootloader.sh
 
 Interactive bootloader management for the MacBook Air 2020 running CachyOS with Limine. Provides boot status display, kernel cmdline updates, optional rEFInd installation, EFI boot order management, and a BTRFS snapshot boot guide.

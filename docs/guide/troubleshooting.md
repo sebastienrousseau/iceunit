@@ -1,3 +1,7 @@
+---
+description: Solutions for common MacBook Air 2020 CachyOS issues including thermal runaway, Wi-Fi, keyboard freeze, audio crackling, and boot failures.
+---
+
 # Troubleshooting
 
 ## CPU Running at 100°C

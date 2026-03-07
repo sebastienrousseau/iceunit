@@ -1,3 +1,7 @@
+---
+description: 01-thermal-setup.sh installs mbpfan with the correct fan curve for the MacBook Air 2020 Apple SMC on CachyOS.
+---
+
 # 01-thermal-setup.sh
 
 Installs and configures `mbpfan` for proper fan control on the MacBook Air 2020. Without this script, the default `thermald` configuration does not drive the Apple SMC fan correctly — the CPU can sustain 97-100 °C at near-minimum fan speed.

@@ -1,3 +1,7 @@
+---
+description: Fix MacBook Air 2020 thermal throttling on CachyOS by installing mbpfan for Apple SMC fan control via the APP0001:00 ACPI path.
+---
+
 # Thermal Setup
 
 ::: danger Run this first

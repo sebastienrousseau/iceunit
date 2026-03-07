@@ -1,3 +1,7 @@
+---
+description: Install Broadcom BCM4377b Wi-Fi and Bluetooth firmware on the MacBook Air 2020 from the arch-mact2 mirror or macOS.
+---
+
 # Wi-Fi Firmware
 
 The Broadcom BCM4377b requires proprietary firmware files that cannot be bundled with the kernel or redistributed. They must be sourced from macOS or from the arch-mact2 community mirror.

@@ -1,3 +1,7 @@
+---
+description: 05-mount-vault.sh unlocks and mounts the LUKS2 encrypted code vault from ~/.vault.img to ~/Code.
+---
+
 # 05-mount-vault.sh
 
 Unlocks and mounts the LUKS2 encrypted code vault. Opens `~/.vault.img` via `cryptsetup` and mounts it at `~/Code`.

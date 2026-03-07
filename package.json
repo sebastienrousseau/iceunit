@@ -11,6 +11,7 @@
     "test:local": "tests/lib/bats-core/bin/bats tests/*.bats"
   },
   "devDependencies": {
+    "feed": "^4.2.2",
     "vitepress": "1.6.3"
   },
   "overrides": {
