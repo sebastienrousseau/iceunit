@@ -7,7 +7,7 @@ export default defineConfig({
   lang: 'en-US',
 
   // ── GitHub Pages base path ─────────────────────────────────────────────────
-  // Matches https://sebastienrousseau.github.io/cachyos-macbook-intel-2020/
+  // Hosted at https://iceunit.com
   base: '/',
 
   // ── Last updated timestamps ────────────────────────────────────────────────
@@ -18,7 +18,7 @@ export default defineConfig({
 
   // ── Head tags ─────────────────────────────────────────────────────────────
   head: [
-    ['link', { rel: 'icon', type: 'image/svg+xml', href: '/cachyos-macbook-intel-2020/favicon.svg' }],
+    ['link', { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' }],
     ['meta', { name: 'theme-color', content: '#a6e3a1' }],
     ['meta', { property: 'og:type', content: 'website' }],
     ['meta', { property: 'og:title', content: 'CachyOS on MacBook Air 2020' }],
@@ -128,7 +128,7 @@ export default defineConfig({
     // ── Footer ────────────────────────────────────────────────────────────
     footer: {
       message: 'Released under the MIT License.',
-      copyright: 'Copyright © 2024–present Sebastien Rousseau'
+      copyright: 'Copyright © 2024–2026 Sebastien Rousseau'
     },
 
     // ── Social links ──────────────────────────────────────────────────────

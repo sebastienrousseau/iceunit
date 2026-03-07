@@ -169,7 +169,8 @@ optimise_btrfs() {
     header "BTRFS Mount Options"
 
     local fstab="/etc/fstab"
-    local uuid="e22d4eac-bac8-4e3e-b1ce-2e46137601ce"  # Your confirmed root UUID
+    local uuid
+    uuid=$(findmnt -rno UUID /) || error "Could not detect root UUID via findmnt"
 
     if grep -q "noatime" "$fstab"; then
         skip "noatime already in fstab"

@@ -85,7 +85,7 @@ update_cmdline() {
     echo "    pcie_aspm=off \\"
     echo "    mem_sleep_default=deep \\"
     echo "    rootflags=subvol=/@ \\"
-    echo "    root=UUID=e22d4eac-bac8-4e3e-b1ce-2e46137601ce"
+    echo "    root=UUID=$(findmnt -rno UUID /)"
     echo ""
 
     read -rp "Write recommended cmdline to ${cmdline_file}? [y/N] " confirm
@@ -194,8 +194,13 @@ EOF
     local refind_id
     refind_id=$(efibootmgr | grep -i "refind" | grep -oP 'Boot\K[0-9A-F]+' | head -1)
 
+    local macos_id
+    macos_id=$(efibootmgr | grep -i "mac" | grep -oP 'Boot\K[0-9A-Fa-f]+' | head -1)
+
     if [[ -n "$limine_id" ]] && [[ -n "$refind_id" ]]; then
-        if efibootmgr -o "${limine_id},${refind_id},0080" 2>/dev/null; then
+        local boot_order="${limine_id},${refind_id}"
+        [[ -n "$macos_id" ]] && boot_order="${boot_order},${macos_id}"
+        if efibootmgr -o "$boot_order" 2>/dev/null; then
             success "Boot order updated: Limine → rEFInd → macOS"
         else
             warn "Could not set boot order — set manually with efibootmgr"
@@ -215,11 +220,15 @@ manage_boot_order() {
     info "Current boot entries:"
     efibootmgr 2>/dev/null || error "efibootmgr not available"
 
+    # Detect boot entry IDs dynamically
+    local limine_boot_id macos_boot_id
+    limine_boot_id=$(efibootmgr | grep -i "limine" | grep -oP 'Boot\K[0-9A-Fa-f]+' | head -1)
+    macos_boot_id=$(efibootmgr | grep -i "mac" | grep -oP 'Boot\K[0-9A-Fa-f]+' | head -1)
+
     echo ""
-    echo "Your confirmed entries:"
-    echo "  0x0001 — Limine (CachyOS)    ← current primary"
-    echo "  0x0080 — Mac OS X"
-    echo "  0x0000 — Zorin OS"
+    echo "Detected entries:"
+    [[ -n "$limine_boot_id" ]] && echo "  0x${limine_boot_id} — Limine (CachyOS)" || echo "  Limine entry not found"
+    [[ -n "$macos_boot_id" ]] && echo "  0x${macos_boot_id} — Mac OS X" || echo "  macOS entry not found"
     echo ""
     echo "Options:"
     echo "  1) Boot into macOS once (next boot only)"
@@ -232,11 +241,13 @@ manage_boot_order() {
 
     case "$choice" in
         1)
-            efibootmgr -n 0080
-            success "Next boot: macOS (will revert to Limine after that)"
+            [[ -n "$macos_boot_id" ]] || error "macOS boot entry not found in efibootmgr output"
+            efibootmgr -n "$macos_boot_id"
+            success "Next boot: macOS (will revert to default after that)"
             ;;
         2)
-            efibootmgr -n 0001
+            [[ -n "$limine_boot_id" ]] || error "Limine boot entry not found in efibootmgr output"
+            efibootmgr -n "$limine_boot_id"
             success "Next boot: CachyOS via Limine"
             ;;
         3)
@@ -258,7 +269,7 @@ show_snapshot_guide() {
 
     cat << 'GUIDE'
 Your Limine setup with limine-snapper-sync is excellent.
-You have 8 snapshots available in the boot menu.
+Snapshots available in the boot menu are listed below.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
  How to boot from a snapshot:

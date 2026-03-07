@@ -1,22 +1,43 @@
-#!/bin/bash
+#!/usr/bin/env bash
+# =============================================================================
+# 06-unmount-vault.sh
+# Unmount and lock the LUKS2 encrypted code vault
+#
+# Unmounts ~/Code and closes the cryptsetup container.
+# Safe to run if already unmounted (exits cleanly).
+#
+# Usage:
+#   bash scripts/06-unmount-vault.sh
+# =============================================================================
+
 set -euo pipefail
+
+RED='\033[0;31m'; YELLOW='\033[1;33m'; GREEN='\033[0;32m'
+CYAN='\033[0;36m'; RESET='\033[0m'
+
+info()    { echo -e "${CYAN}[INFO]${RESET}  $*"; }
+success() { echo -e "${GREEN}[OK]${RESET}    $*"; }
+warn()    { echo -e "${YELLOW}[WARN]${RESET}  $*"; }
+error()   { echo -e "${RED}[ERROR]${RESET} $*"; exit 1; }
 
 MAPPER_NAME="code_vault"
 MOUNT_POINT="$HOME/Code"
 
-echo "🔒 Securing and unmounting the code vault..."
+info "Securing and unmounting the code vault..."
 
-if mount | grep -q "$MOUNT_POINT"; then
-    echo "Unmounting $MOUNT_POINT..."
-    sudo umount "$MOUNT_POINT"
+# Unmount if mounted
+if findmnt -rno TARGET "$MOUNT_POINT" &>/dev/null; then
+    info "Unmounting ${MOUNT_POINT}..."
+    sudo umount "$MOUNT_POINT" || error "Failed to unmount ${MOUNT_POINT} — a process may be using it"
 else
-    echo "ℹ️ Vault is not currently mounted."
+    info "Vault is not currently mounted."
 fi
 
-if [ -e "/dev/mapper/$MAPPER_NAME" ]; then
-    echo "Closing encrypted container..."
+# Close LUKS container if open
+if [[ -e "/dev/mapper/$MAPPER_NAME" ]]; then
+    info "Closing encrypted container..."
     sudo cryptsetup close "$MAPPER_NAME"
-    echo "✅ Vault successfully locked and secured."
+    success "Vault locked and secured."
 else
-    echo "✅ Vault is already locked."
+    success "Vault is already locked."
 fi

@@ -2,3 +2,10 @@ node_modules/
 docs/.vitepress/dist/
 docs/.vitepress/cache/
 .DS_Store
+*.swp
+*.swo
+*~
+*.bak
+.env
+.env.local
+tests/lib/

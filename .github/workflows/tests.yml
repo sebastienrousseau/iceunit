@@ -1,0 +1,45 @@
+name: Tests
+
+on:
+  push:
+    paths:
+      - 'scripts/*.sh'
+      - 'tests/**'
+  pull_request:
+    paths:
+      - 'scripts/*.sh'
+      - 'tests/**'
+
+jobs:
+  bats:
+    name: Bash Script Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install bats-core
+        run: |
+          git clone --depth 1 https://github.com/bats-core/bats-core.git /tmp/bats-core
+          sudo /tmp/bats-core/install.sh /usr/local
+
+      - name: Run tests
+        run: bats tests/*.bats
+
+      - name: Install kcov
+        if: always()
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq kcov
+
+      - name: Generate coverage report
+        if: always()
+        run: |
+          kcov --include-path=scripts/ coverage/ bats tests/*.bats || true
+
+      - name: Upload coverage artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/

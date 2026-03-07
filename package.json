@@ -5,7 +5,10 @@
   "scripts": {
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
-    "docs:preview": "vitepress preview docs"
+    "docs:preview": "vitepress preview docs",
+    "test": "bats tests/*.bats",
+    "test:setup": "bash tests/setup-bats.sh",
+    "test:local": "tests/lib/bats-core/bin/bats tests/*.bats"
   },
   "devDependencies": {
     "vitepress": "1.6.3"

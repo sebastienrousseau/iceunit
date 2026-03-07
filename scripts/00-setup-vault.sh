@@ -44,7 +44,7 @@ preflight() {
         error "Vault image already exists at ${VAULT_IMG}. If you want to recreate it, delete it first.\nTo just mount the existing vault: bash 05-mount-vault.sh"
     fi
 
-    if mount | grep -q "$MOUNT_POINT"; then
+    if findmnt -rno TARGET "$MOUNT_POINT" &>/dev/null; then
         error "${MOUNT_POINT} is already mounted. Run 06-unmount-vault.sh first."
     fi
 
@@ -65,7 +65,7 @@ choose_size() {
     VAULT_SIZE="${input_size:-$DEFAULT_SIZE}"
 
     # Validate format
-    if ! echo "$VAULT_SIZE" | grep -qE '^[0-9]+[GgMm]$'; then
+    if ! echo "$VAULT_SIZE" | grep -qE '^[1-9][0-9]*[GgMm]$'; then
         error "Invalid size '${VAULT_SIZE}'. Use format like 60G or 100G."
     fi
 
@@ -136,7 +136,7 @@ initialise_filesystem() {
 verify() {
     header "Verification"
 
-    if mount | grep -q "$MOUNT_POINT"; then
+    if findmnt -rno TARGET "$MOUNT_POINT" &>/dev/null; then
         success "Vault is mounted and ready"
         df -h "$MOUNT_POINT" | tail -1 | awk '{print "  Available: "$4" of "$2}'
     else
