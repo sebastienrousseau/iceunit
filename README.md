@@ -38,14 +38,14 @@ Field-tested scripts and configuration for installing and optimising [CachyOS](h
 ## Quick Start
 
 ```bash
+# Ensure prerequisites are installed
+sudo pacman -S --needed go make git
+
 git clone https://github.com/sebastienrousseau/cachyos-macbook-intel-2020.git
 cd cachyos-macbook-intel-2020
 
-# Run the interactive Iceunit (ICU) installer (requires Go)
+# Run the interactive Iceunit (ICU) installer
 sudo make install
-
-# Audit your system state at any time
-make verify
 ```
 
 The new installer features a beautiful, interactive CLI interface built with Go and Bubble Tea, automatically executing the post-installation optimization steps concurrently where possible.

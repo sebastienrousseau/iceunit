@@ -42,8 +42,8 @@ The first thing to do after logging in:
 # Update the system
 sudo pacman -Syu
 
-# Install Go (required for the new installer)
-sudo pacman -S go
+# Install prerequisites
+sudo pacman -S --needed go make git
 
 # Clone the scripts repo
 git clone https://github.com/sebastienrousseau/cachyos-macbook-intel-2020.git
