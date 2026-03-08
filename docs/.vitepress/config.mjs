@@ -461,6 +461,7 @@ export default defineConfig({
               text: '06 · Unmount Vault',
               link: '/scripts/06-unmount-vault',
             },
+            { text: '07 · Install Apps', link: '/scripts/07-install-apps' },
             { text: '99 · Verify Install', link: '/scripts/99-verify-install' },
           ],
         },

@@ -5,6 +5,7 @@ DRY_RUN=false
 ASSUME_YES=false
 for arg in "$@"; do
     [[ "$arg" == "--dry-run" ]] && DRY_RUN=true
+    # shellcheck disable=SC2034
     [[ "$arg" == "--yes" ]] && ASSUME_YES=true
 done
 

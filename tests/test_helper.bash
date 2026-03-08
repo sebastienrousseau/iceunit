@@ -48,6 +48,9 @@ common_setup() {
 
     # Mock getent to return the test home
     mock_command getent 0 "${USER}:x:1000:1000::${TEST_HOME}:/bin/bash"
+    
+    # Mock whoami
+    mock_command whoami 0 "${USER}"
 }
 
 common_teardown() {
@@ -120,7 +123,7 @@ mock_command_conditional() {
     cat > "${MOCK_BIN}/${cmd}" << ENDMOCK
 #!/usr/bin/env bash
 echo "\$*" >> "${MOCK_CALLS}/${cmd}"
-if echo "\$*" | /usr/bin/grep -q "${pattern}"; then
+if echo "\$*" | /usr/bin/grep -qF -- "${pattern}"; then
     ${output_match:+echo "${output_match}"}
     exit ${exit_match}
 else
@@ -212,6 +215,8 @@ prepare_runnable_script() {
     RUNNABLE_SCRIPT="${TEST_TEMP}/runnable_$(basename "$script")"
 
     sed \
+        -e '/^set -euo pipefail$/d' \
+        -e '/^set -uo pipefail$/d' \
         -e "s|/dev/mapper/|${TEST_TEMP}/dev_mapper/|g" \
         -e "s|/etc/|${TEST_TEMP}/etc/|g" \
         -e "s|/boot/|${TEST_TEMP}/boot/|g" \

@@ -46,19 +46,30 @@ header() {
 
 # ── 1. PACKAGES ──────────────────────────────────────────────────────────────
 header "Package Verification"
-PKGS=(bc lm_sensors htop btop nvme-cli smartmontools powertop cpupower tlp pipewire pipewire-pulse wireplumber limine efibootmgr refind snapper btrfs-progs cryptsetup git curl wget base-devel ripgrep fd fzf bat eza jq yq neovim tmux zoxide atuin direnv starship podman podman-compose python python-pip python-pipx nodejs npm go rust cmake ninja gcc clang mold lazygit github-cli ollama kubectl helm k9s terraform ansible stern dive rsync gitleaks age sops openssh gnupg ufw)
+# Core mandatory packages (excluding optional container choice)
+PKGS=(bc lm_sensors htop btop nvme-cli smartmontools powertop cpupower tlp pipewire pipewire-pulse wireplumber limine efibootmgr refind snapper btrfs-progs cryptsetup git curl wget base-devel ripgrep fd fzf bat eza jq yq neovim tmux zoxide atuin direnv starship python python-pip python-pipx nodejs npm go rust cmake ninja gcc clang mold lazygit github-cli ollama kubectl helm k9s terraform ansible stern dive rsync gitleaks age sops openssh gnupg ufw)
 
-MISSING_COUNT=0
+MISSING_PKGS=()
 for pkg in "${PKGS[@]}"; do
     if ! pacman -Qq "$pkg" >/dev/null 2>&1; then
-        ((MISSING_COUNT++))
+        MISSING_PKGS+=("$pkg")
     fi
 done
+
+MISSING_COUNT=${#MISSING_PKGS[@]}
 
 if [ "$MISSING_COUNT" -eq 0 ]; then
     printf "  %b %b %b\n" "$CHECK" "${LABEL}Core Packages${RESET}" "${DIM}(All ${#PKGS[@]} Iceunit packages present)${RESET}"
 else
-    printf "  %b %b %b\n" "$CROSS" "${LABEL}Core Packages${RESET}" "${DIM}($MISSING_COUNT packages missing)${RESET}"
+    MISSING_STR="${MISSING_PKGS[*]}"
+    printf "  %b %b %b %b\n" "$CROSS" "${LABEL}Core Packages${RESET}" "${DIM}($MISSING_COUNT missing)${RESET}" "${YELLOW}Missing: ${MISSING_STR:0:45}...${RESET}"
+fi
+
+# Container package check (Mandatory to have at least one)
+if pacman -Qq docker >/dev/null 2>&1 || pacman -Qq podman >/dev/null 2>&1; then
+    check "Container Runtime" "Docker/Podman" "true"
+else
+    check "Container Runtime" "Docker/Podman" "false" "Install docker or podman"
 fi
 
 # ── 2. SERVICES ──────────────────────────────────────────────────────────────
@@ -91,6 +102,8 @@ fi
 
 # ── 3. OPTIMISATION ──────────────────────────────────────────────────────────
 header "Hardware Optimisation"
+check "T2 Driver" "apple-bce" "lsmod | grep -q apple_bce"
+check "SSD Health" "NVMe TRIM" "findmnt -no OPTIONS / | grep -q 'discard=async'"
 check "Thermal Curve" "/etc/mbpfan.conf" "[ -f /etc/mbpfan.conf ]"
 check "System Performance" "Sysctl Tweaks" "[ -f /etc/sysctl.d/99-macbook-air-2020.conf ]"
 check "Power Profile" "TLP Config" "[ -f /etc/tlp.d/10-macbook-air-2020.conf ]"
@@ -111,6 +124,7 @@ check "Sleep Mode" "Deep Sleep" "grep -q '\[deep\]' /sys/power/mem_sleep"
 # ── 4. FIRMWARE & STORAGE ────────────────────────────────────────────────────
 header "Firmware & Storage"
 check "Wi-Fi Driver" "BCM4377b" "[ -f /lib/firmware/brcm/brcmfmac4377b3-pcie.apple,fiji.bin ]"
+check "Interface" "wlan0" "ip link show wlan0"
 check "Bluetooth Driver" "BRCM4377" "[ -f /lib/firmware/brcm/brcmbt4377b3-apple,formosa.bin ]"
 
 VAULT_FOUND=0
@@ -126,5 +140,29 @@ fi
 
 check "Vault Mounting" "\$HOME/Code" "findmnt -rno TARGET $REAL_HOME/Code || findmnt -rno TARGET /root/Code"
 
+# ── 5. DEVELOPER ENVIRONMENT ─────────────────────────────────────────────────
+header "Developer Environment"
+check "Git Signing Key" "user.signingkey" "git config --get user.signingkey"
+check "Git GPG Signing" "commit.gpgsign" "[[ \$(git config --get commit.gpgsign 2>/dev/null) == 'true' ]]"
+
+# ── 6. APPLICATION SUITE ─────────────────────────────────────────────────────
+header "Application Suite"
+APPS=(google-chrome brave-bin libreoffice-fresh loupe gnome-screenshot vlc ghostty zed extension-manager virt-manager nautilus)
+MISSING_APPS=()
+for app in "${APPS[@]}"; do
+    if ! pacman -Qq "$app" >/dev/null 2>&1; then
+        MISSING_APPS+=("$app")
+    fi
+done
+
+if [ ${#MISSING_APPS[@]} -eq 0 ]; then
+    printf "  %b %b %b\n" "$CHECK" "${LABEL}Standard Apps${RESET}" "${DIM}(All ${#APPS[@]} apps present)${RESET}"
+else
+    APP_STR="${MISSING_APPS[*]}"
+    printf "  %b %b %b %b\n" "$CROSS" "${LABEL}Standard Apps${RESET}" "${DIM}(${#MISSING_APPS[@]} missing)${RESET}" "${YELLOW}Missing: ${APP_STR:0:45}...${RESET}"
+fi
+
 printf "\n%bVerification Complete.%b\n" "$LABEL" "$RESET"
 printf "Run %bsudo make install%b to fix any issues.\n\n" "$HEADER" "$RESET"
+
+exit 0

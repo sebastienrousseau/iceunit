@@ -1,6 +1,6 @@
 .PHONY: help install bootstrap lint test test-go test-docker test-integration \
        test-all verify docs docs-build docs-preview clean \
-       init vault thermal wifi optimise bootloader mount unmount
+       init vault thermal wifi optimise bootloader mount unmount apps
 
 SHELL := /bin/bash
 
@@ -50,6 +50,9 @@ mount: ## Unlock and mount code vault (05-mount-vault.sh)
 
 unmount: ## Lock and unmount code vault (06-unmount-vault.sh)
 	bash scripts/06-unmount-vault.sh $(FLAGS)
+
+apps: ## Standard application suite (07-install-apps.sh)
+	bash scripts/07-install-apps.sh $(FLAGS)
 
 # ── Lint ─────────────────────────────────────────────────────────────────────
 

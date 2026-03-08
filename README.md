@@ -73,6 +73,7 @@ cachyos-macbook-intel-2020/
 │   ├── 04-bootloader.sh         # Bootloader management
 │   ├── 05-mount-vault.sh        # Unlock and mount vault
 │   ├── 06-unmount-vault.sh      # Lock and unmount vault
+│   ├── 07-install-apps.sh       # Standard application suite
 │   └── 99-verify-install.sh     # System health audit
 ├── tests/                       # Unit and integration test suites
 │   ├── *.bats                   # 144 unit tests (bats-core)
@@ -109,6 +110,7 @@ cachyos-macbook-intel-2020/
 | `04-bootloader.sh` | Limine & boot management | Recommended | `make bootloader` | [Reference](https://iceunit.com/scripts/04-bootloader) |
 | `05-mount-vault.sh` | Unlock and mount vault | Optional | `make mount` | [Reference](https://iceunit.com/scripts/05-mount-vault) |
 | `06-unmount-vault.sh` | Lock and unmount vault | Optional | `make unmount` | [Reference](https://iceunit.com/scripts/06-unmount-vault) |
+| `07-install-apps.sh` | Standard application suite | Recommended | `make apps` | [Reference](https://iceunit.com/scripts/07-install-apps) |
 | `99-verify-install.sh` | System health audit | Recommended | `make verify` | [Reference](https://iceunit.com/scripts/99-verify-install) |
 
 All scripts support `DRY_RUN=1` to preview changes and `--help` for usage information.

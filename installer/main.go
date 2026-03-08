@@ -71,6 +71,7 @@ func newModel() model {
 		{Category: "System Optimisation", Software: "TLP & Kernel Tweaks", Path: "scripts/03-optimise.sh"},
 		{Category: "Bootloader Configuration", Software: "Limine & rEFInd", Path: "scripts/04-bootloader.sh"},
 		{Category: "Unlock Code Vault", Software: "Mounting /root/Code", Path: "scripts/05-mount-vault.sh"},
+		{Category: "Application Suite", Software: "Browsers, Media & Tools", Path: "scripts/07-install-apps.sh"},
 		{Category: "AI Dev Workstation", Software: "Aider, Docker & Ollama", Path: "workstation/00-ai-dev-workstation.sh"},
 		{Category: "GNOME Productivity", Software: "Productivity Tweaks", Path: "workstation/10-gnome-productivity.sh"},
 		{Category: "DevOps Tools", Software: "Kubectl & Terraform", Path: "workstation/20-devops-tools.sh"},
