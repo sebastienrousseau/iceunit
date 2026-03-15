@@ -37,6 +37,7 @@ RUN su - testuser -c "fallocate -l 10M /home/testuser/.vault.img"
 
 WORKDIR /repo
 COPY scripts/ ./scripts/
+COPY workstation/ ./workstation/
 COPY tests/integration/ ./tests/integration/
 
 RUN chown -R testuser:testuser /repo

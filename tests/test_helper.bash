@@ -5,6 +5,7 @@
 
 REPO_ROOT="$(cd "$(dirname "${BATS_TEST_FILENAME}")/.." && pwd)"
 SCRIPTS_DIR="${REPO_ROOT}/scripts"
+WORKSTATION_DIR="${REPO_ROOT}/workstation"
 
 # ── Common setup/teardown (call from each .bats file) ────────────────────────
 
