@@ -14,7 +14,7 @@
 #   brcmbt4377b3-apple,formosa.bin  (Bluetooth)
 # =============================================================================
 
-set -euo pipefail
+set -Eeuo pipefail
 
 DRY_RUN=false
 ASSUME_YES=false

@@ -63,7 +63,7 @@ cachyos-macbook-intel-2020/
 │   ├── main.go                  # TUI orchestrator source
 │   ├── main_test.go             # Installer unit tests
 │   ├── go.mod                   # Go module definition
-│   └── installer_bin            # Compiled installer binary
+│   └── installer_bin            # Compiled binary (gitignored — built via make install)
 ├── mise-plugins/                # Mise plugin infrastructure for AI tools
 │   ├── ollama/bin/              # Ollama version manager (list-all, download, install)
 │   ├── claude-code/bin/         # Claude Code version manager

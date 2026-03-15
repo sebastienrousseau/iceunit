@@ -12,7 +12,7 @@
 #   • Sleep: s2idle + deep available
 # =============================================================================
 
-set -euo pipefail
+set -Eeuo pipefail
 
 DRY_RUN=false
 ASSUME_YES=false

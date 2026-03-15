@@ -17,7 +17,7 @@
 #   4. Manage boot order between macOS / CachyOS / other OSes
 # =============================================================================
 
-set -euo pipefail
+set -Eeuo pipefail
 
 DRY_RUN=false
 ASSUME_YES=false

@@ -13,7 +13,7 @@
 #   Kernel:  6.19.x-cachyos  |  Driver: applesmc
 # =============================================================================
 
-set -euo pipefail
+set -Eeuo pipefail
 
 DRY_RUN=false
 for arg in "$@"; do

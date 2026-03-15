@@ -44,7 +44,7 @@ The vault scripts (`00-setup-vault.sh`, `05-mount-vault.sh`, `06-unmount-vault.s
 
 ## Supported Versions
 
-Only the latest version on the `main` branch is supported. See the [changelog](/changelog) for release history.
+Only the latest version on the `main` branch is supported. See the [changelog](https://iceunit.com/changelog) for release history.
 
 ### Dotfiles Bootstrap
 

@@ -50,7 +50,7 @@ git clone https://github.com/sebastienrousseau/cachyos-macbook-intel-2020.git
 cd cachyos-macbook-intel-2020
 
 # Run the interactive Iceunit (ICU) installer for automated setup
-make install
+sudo make install
 
 # Finally, verify your system health
 make verify

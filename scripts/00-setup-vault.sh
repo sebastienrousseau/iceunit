@@ -17,7 +17,7 @@
 #   directory so it's included in any home backup automatically.
 # =============================================================================
 
-set -euo pipefail
+set -Eeuo pipefail
 
 DRY_RUN=false
 ASSUME_YES=false

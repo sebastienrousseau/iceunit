@@ -16,6 +16,18 @@ The `00-system-init.sh` script is the entry point for the Iceunit configuration.
 3. **Conflict Resolution**: It automatically handles known file conflicts (e.g., untracked `ollama` directories) to ensure a smooth transaction.
 4. **Optimized Sync**: It bundles all missing packages into a single `pacman` transaction to minimize database locks and disk I/O.
 
+## Usage
+
+```bash
+bash scripts/00-system-init.sh [--dry-run] [--yes] [--help]
+```
+
+| Flag | Description |
+|---|---|
+| `--dry-run` | Preview actions without modifying the system |
+| `--yes` | Skip confirmation prompts |
+| `--help` | Display usage information |
+
 ## Running
 
 ```bash

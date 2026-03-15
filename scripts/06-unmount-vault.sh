@@ -10,7 +10,7 @@
 #   bash scripts/06-unmount-vault.sh [--dry-run] [--help]
 # =============================================================================
 
-set -euo pipefail
+set -Eeuo pipefail
 
 DRY_RUN=false
 for arg in "$@"; do

@@ -17,7 +17,7 @@ For Intel Macs reaching end-of-life from Apple's update support, CachyOS is an e
 The official CachyOS wiki covers T2 Macs generally. This guide is specific to the **MacBook Air 2020 (MacBookAir9,1)** and documents real-world issues you'll encounter that aren't covered elsewhere:
 
 - The fan exposes itself via ACPI (`APP0001:00`), not the traditional `applesmc` platform path — this breaks the default `thermald` configuration
-- `apple_bce` is compiled into the CachyOS kernel (not a loadable module), so `modprobe apple-bce` always fails
+- `apple_bce` is compiled into the CachyOS kernel (not a loadable module), so `modprobe apple_bce` always fails
 - Glob patterns in scripts fail silently when called from **fish shell** via `sudo bash`
 - `paru`/`yay` cannot be called via `sudo -u` inside a sudo session
 
@@ -31,7 +31,7 @@ All of these are fixed in this guide's scripts.
 | **CPU** | Intel Core i5-1030NG7 @ 1.10GHz (Ice Lake) |
 | **Kernel** | 6.19.x-cachyos |
 | **Bootloader** | Limine 10.8.2 |
-| **Audio** | PipeWire 1.6.0 via apple-bce |
+| **Audio** | PipeWire 1.6.0 via apple_bce |
 | **Swap** | ZRAM 15.4G (zstd) |
 
 ## Quick Start
@@ -44,7 +44,7 @@ Your CPU can sustain 100°C at near-idle fan speeds without intervention. This i
 
 ```bash
 # Run the unified interactive Bubble Tea installer (requires Go)
-make install
+sudo make install
 ```
 
 For a fresh install, start with [Disable T2 Security](/guide/disable-t2-security).
