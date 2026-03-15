@@ -278,13 +278,6 @@ func executeTask(task Task) tea.Cmd {
 	}
 }
 
-func max(a, b int) int {
-	if a > b {
-		return a
-	}
-	return b
-}
-
 func main() {
 	m := newModel()
 	pInstance = tea.NewProgram(m)

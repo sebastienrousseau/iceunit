@@ -6,9 +6,14 @@ docs/.vitepress/cache/
 *.swo
 *~
 *.bak
-*~
 .env
 .env.local
 tests/lib/
 *.tar.gz
 *.zip
+
+# Compiled Go binary — build from source via: cd installer && go build -o installer_bin
+installer/installer_bin
+
+# Claude Code session permissions
+.claude/settings.local.json

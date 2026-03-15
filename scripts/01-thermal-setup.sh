@@ -212,7 +212,13 @@ enable_services() {
 
     # Enable and start mbpfan
     systemctl enable --now mbpfan
-    sleep 2
+
+    # Wait for mbpfan to become active (up to 10 seconds)
+    local attempts=0
+    while ! systemctl is-active mbpfan &>/dev/null && (( attempts < 10 )); do
+        sleep 1
+        (( attempts++ ))
+    done
 
     if systemctl is-active mbpfan &>/dev/null; then
         success "mbpfan is active"

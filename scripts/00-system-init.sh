@@ -44,5 +44,5 @@ if [[ " ${MISSING_PKGS[*]} " =~ " ollama " ]] && [ -d "/usr/share/ollama" ] && !
     dryrun sudo rm -rf /usr/share/ollama
 fi
 
-dryrun sudo pacman -Sy --needed --noconfirm --overwrite '*' "${MISSING_PKGS[@]}"
+dryrun sudo pacman -Sy --needed --noconfirm --overwrite '/usr/share/ollama/*' "${MISSING_PKGS[@]}"
 printf '\033[0;32m[OK]\033[0m System initialization complete.\n'

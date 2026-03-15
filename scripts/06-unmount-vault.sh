@@ -41,8 +41,11 @@ success() { echo -e "${GREEN}[OK]${RESET}    $*"; }
 warn()    { echo -e "${YELLOW}[WARN]${RESET}  $*"; }
 error()   { echo -e "${RED}[ERROR]${RESET} $*"; exit 1; }
 
+REAL_USER="${SUDO_USER:-${USER:-$(whoami)}}"
+REAL_HOME=$(getent passwd "$REAL_USER" | cut -d: -f6)
+
 MAPPER_NAME="code_vault"
-MOUNT_POINT="$HOME/Code"
+MOUNT_POINT="$REAL_HOME/Code"
 
 info "Securing and unmounting the code vault..."
 

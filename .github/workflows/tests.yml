@@ -4,10 +4,12 @@ on:
   push:
     paths:
       - 'scripts/*.sh'
+      - 'workstation/*.sh'
       - 'tests/**'
   pull_request:
     paths:
       - 'scripts/*.sh'
+      - 'workstation/*.sh'
       - 'tests/**'
 
 jobs:
@@ -19,7 +21,7 @@ jobs:
       - name: ShellCheck
         uses: ludeeus/action-shellcheck@master
         with:
-          scandir: './scripts'
+          scandir: './scripts ./workstation'
 
   unit-tests:
     name: Unit Tests

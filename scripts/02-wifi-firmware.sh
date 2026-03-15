@@ -166,7 +166,9 @@ install_from_package() {
 
     [[ $EUID -eq 0 ]] || error "Requires sudo: sudo bash $0 install-pkg"
 
-    local pkg_file="/tmp/apple-bcm-firmware.pkg.tar.zst"
+    local pkg_dir
+    pkg_dir=$(mktemp -d) || error "Failed to create temporary directory"
+    local pkg_file="${pkg_dir}/apple-bcm-firmware.pkg.tar.zst"
 
     info "Downloading firmware package..."
     info "Source: ${PACKAGE_URL}"
@@ -178,7 +180,7 @@ install_from_package() {
         || tar -xf "${pkg_file}" -C / 2>/dev/null \
         || error "Extraction failed"
 
-    rm -f "${pkg_file}"
+    rm -rf "${pkg_dir}"
     success "Firmware installed from package"
 
     # Reload module

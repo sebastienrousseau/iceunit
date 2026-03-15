@@ -163,7 +163,7 @@ initialise_filesystem() {
     sudo mount /dev/mapper/"$MAPPER_NAME" "$MOUNT_POINT"
 
     info "Taking ownership..."
-    sudo chown -R "$REAL_USER:$REAL_USER" "$MOUNT_POINT"
+    sudo chown "$REAL_USER:$REAL_USER" "$MOUNT_POINT"
 
     success "Vault mounted at ${MOUNT_POINT}"
 }

@@ -26,7 +26,7 @@ log "=== AI Developer Workstation Setup (CachyOS / Arch) ==="
 
 # Ensure pacman packages (Split to handle conflicts gracefully)
 PKGS=(git curl wget base-devel ripgrep fd fzf bat eza jq yq neovim tmux zoxide atuin direnv starship podman podman-compose python python-pip python-pipx nodejs npm go rust cmake ninja gcc clang mold lazygit github-cli ollama)
-dryrun sudo pacman -Sy --needed --noconfirm --overwrite '*' "${PKGS[@]}"
+dryrun sudo pacman -Sy --needed --noconfirm --overwrite '/usr/share/ollama/*' "${PKGS[@]}"
 
 # Install docker separately (often conflicts with podman-docker)
 dryrun sudo pacman -S --needed --noconfirm docker docker-compose || warn "Docker installation skipped (possibly due to podman-docker conflict)"
