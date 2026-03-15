@@ -22,7 +22,7 @@ log()   { printf '[%s] %s\n' "$(date '+%H:%M:%S')" "$*"; }
 
 log "=== DevOps Tooling Setup ==="
 
-dryrun sudo pacman -Sy --needed --noconfirm kubectl helm k9s terraform ansible stern dive rsync
+dryrun sudo pacman -S --needed --noconfirm kubectl helm k9s terraform ansible stern dive rsync
 
 # Install kubectl completion
 if command -v kubectl >/dev/null 2>&1; then

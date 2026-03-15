@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/charmbracelet/bubbles/progress"
@@ -70,7 +71,7 @@ func newModel() model {
 		{Category: "Wi-Fi Firmware", Software: "BCM4377b Firmware", Path: "scripts/02-wifi-firmware.sh"},
 		{Category: "System Optimisation", Software: "TLP & Kernel Tweaks", Path: "scripts/03-optimise.sh"},
 		{Category: "Bootloader Configuration", Software: "Limine & rEFInd", Path: "scripts/04-bootloader.sh"},
-		{Category: "Unlock Code Vault", Software: "Mounting /root/Code", Path: "scripts/05-mount-vault.sh"},
+		{Category: "Unlock Code Vault", Software: "Mounting ~/Code", Path: "scripts/05-mount-vault.sh"},
 		{Category: "Application Suite", Software: "Browsers, Media & Tools", Path: "scripts/07-install-apps.sh"},
 		{Category: "AI Dev Workstation", Software: "Aider, Docker & Ollama", Path: "workstation/00-ai-dev-workstation.sh"},
 		{Category: "GNOME Productivity", Software: "Productivity Tweaks", Path: "workstation/10-gnome-productivity.sh"},
@@ -226,7 +227,10 @@ var pInstance *tea.Program
 
 func executeTask(task Task) tea.Cmd {
 	return func() tea.Msg {
-		absPath, _ := filepath.Abs(filepath.Join("..", task.Path))
+		absPath, err := filepath.Abs(filepath.Join("..", task.Path))
+		if err != nil {
+			return taskCompletedMsg{err: fmt.Errorf("could not resolve script path: %w", err)}
+		}
 		args := append([]string{absPath}, os.Args[1:]...)
 		cmd := exec.Command("bash", args...)
 		cmd.Env = os.Environ()
@@ -239,9 +243,12 @@ func executeTask(task Task) tea.Cmd {
 		}
 
 		var stderrLog strings.Builder
+		var wg sync.WaitGroup
+		wg.Add(1)
 
 		// Stream output
 		go func() {
+			defer wg.Done()
 			reader := io.MultiReader(stdout, stderr)
 			scanner := bufio.NewScanner(reader)
 			for scanner.Scan() {
@@ -256,7 +263,8 @@ func executeTask(task Task) tea.Cmd {
 			}
 		}()
 
-		err := cmd.Wait()
+		err = cmd.Wait()
+		wg.Wait() // Ensure goroutine finishes before reading stderrLog
 		if err != nil {
 			var errLines []string
 			allLines := strings.Split(strings.TrimSpace(stderrLog.String()), "\n")

@@ -81,9 +81,9 @@ install_mbpfan() {
         # AUR helpers must run as normal user, not via sudo
         local aur_user="${SUDO_USER:-$USER}"
         if command -v paru &>/dev/null; then
-            su -c "paru -S --noconfirm mbpfan" "$aur_user"
+            runuser -l "$aur_user" -- paru -S --noconfirm mbpfan
         elif command -v yay &>/dev/null; then
-            su -c "yay -S --noconfirm mbpfan" "$aur_user"
+            runuser -l "$aur_user" -- yay -S --noconfirm mbpfan
         else
             error "No AUR helper found. Install with: paru -S mbpfan"
         fi

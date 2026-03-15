@@ -4,6 +4,9 @@
 # Clean, professional audit script matching the Iceunit (ICU) design.
 # =============================================================================
 
+# NOTE: -e is intentionally omitted — the check() function uses eval in
+# conditionals that return non-zero for missing/inactive items. With -e
+# the script would exit on the first failing check instead of reporting all.
 set -uo pipefail
 
 # Iceunit Color Palette (ANSI equivalents)
@@ -138,7 +141,7 @@ else
     check "Code Vault" "Missing image" "false"
 fi
 
-check "Vault Mounting" "\$HOME/Code" "findmnt -rno TARGET $REAL_HOME/Code || findmnt -rno TARGET /root/Code"
+check "Vault Mounting" "\$HOME/Code" "findmnt -rno TARGET '$REAL_HOME/Code' || findmnt -rno TARGET /root/Code"
 
 # ── 5. DEVELOPER ENVIRONMENT ─────────────────────────────────────────────────
 header "Developer Environment"

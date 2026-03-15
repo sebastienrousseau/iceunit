@@ -80,7 +80,11 @@ optimise_kernel_params() {
 
     if [[ ${#new_params[@]} -gt 0 ]]; then
         info "Adding to ${cmdline_file}: ${new_params[*]}"
-        echo "${current_cmdline} ${new_params[*]}" | xargs | sudo tee "$cmdline_file" > /dev/null
+        if $DRY_RUN; then
+            echo "[DRY-RUN] tee $cmdline_file"
+        else
+            printf '%s\n' "${current_cmdline} ${new_params[*]}" | tr -s ' ' | sudo tee "$cmdline_file" > /dev/null
+        fi
         success "Kernel cmdline updated"
         warn "Regenerate Limine entries after this: sudo limine-entry-tool"
         mark_applied "kernel-cmdline"
@@ -91,7 +95,7 @@ optimise_kernel_params() {
 
     # Handle sysctl
     info "Applying sysctl optimisations..."
-    cat > /etc/sysctl.d/99-macbook-air-2020.conf << 'EOF'
+    dryrun tee /etc/sysctl.d/99-macbook-air-2020.conf > /dev/null << 'EOF'
 # MacBook Air 2020 (CachyOS) — sysctl optimisations
 # ZRAM is 15.4G — keep swappiness very low to prefer RAM
 vm.swappiness = 10
@@ -108,7 +112,7 @@ net.ipv4.tcp_fastopen = 3
 # Reduce NMI watchdog overhead (nowatchdog already in cmdline)
 kernel.nmi_watchdog = 0
 EOF
-    sysctl --system &>/dev/null
+    dryrun sysctl --system &>/dev/null
     success "sysctl rules applied (/etc/sysctl.d/99-macbook-air-2020.conf)"
     mark_applied "sysctl"
 }
@@ -124,7 +128,7 @@ optimise_tlp() {
     fi
 
     # Write a drop-in config (doesn't overwrite /etc/tlp.conf)
-    cat > /etc/tlp.d/10-macbook-air-2020.conf << 'EOF'
+    dryrun tee /etc/tlp.d/10-macbook-air-2020.conf > /dev/null << 'EOF'
 # TLP drop-in for MacBook Air 2020 (MacBookAir9,1)
 # Intel Core i5-1030NG7 — Ice Lake — 49.9Wh battery
 # Applied on top of /etc/tlp.conf
@@ -173,8 +177,8 @@ SOUND_POWER_SAVE_ON_BAT=0
 SOUND_POWER_SAVE_CONTROLLER=N
 EOF
 
-    systemctl enable --now tlp 2>/dev/null || true
-    systemctl restart tlp 2>/dev/null || true
+    dryrun systemctl enable --now tlp 2>/dev/null || true
+    dryrun systemctl restart tlp 2>/dev/null || true
     success "TLP service enabled and drop-in written to /etc/tlp.d/10-macbook-air-2020.conf"
     info "Wi-Fi power management disabled (prevents BCM4377b disconnects)"
     info "USB autosuspend disabled (T2 BCE bridge stability)"
@@ -218,13 +222,18 @@ EOF
 
     # Apply live (non-persistent) optimisations now
     info "Applying live BTRFS optimisations (no fstab edit needed)..."
-    if mount -o remount,noatime / 2>/dev/null; then
-        success "noatime applied live"
+    if ! $DRY_RUN; then
+        if mount -o remount,noatime / 2>/dev/null; then
+            success "noatime applied live"
+        else
+            warn "Could not remount"
+        fi
+        btrfs filesystem defragment -r /home &>/dev/null &
+        info "Background defragmentation started for /home"
     else
-        warn "Could not remount"
+        echo "[DRY-RUN] mount -o remount,noatime /"
+        echo "[DRY-RUN] btrfs filesystem defragment -r /home"
     fi
-    btrfs filesystem defragment -r /home &>/dev/null &
-    info "Background defragmentation started for /home"
 }
 
 # ── 4. Apple T2 Audio stability ───────────────────────────────────────────────
@@ -246,7 +255,7 @@ optimise_audio() {
         return
     fi
 
-    cat > "$conf_file" << 'EOF'
+    dryrun tee "$conf_file" > /dev/null << 'EOF'
 # PipeWire config for Apple T2 Audio — MacBook Air 2020
 # Reduces audio crackling and pops common with apple-bce driver
 context.properties = {
@@ -281,12 +290,16 @@ optimise_sleep() {
         success "Deep sleep (S3-like via s2idle) already default — good"
     else
         info "Setting deep sleep as default..."
-        echo deep | sudo tee /sys/power/mem_sleep > /dev/null
+        if ! $DRY_RUN; then
+            echo deep | sudo tee /sys/power/mem_sleep > /dev/null
+        else
+            echo "[DRY-RUN] tee /sys/power/mem_sleep"
+        fi
         success "Deep sleep enabled"
     fi
 
     # Write a suspend hook to safely handle T2 quirks
-    cat > /etc/systemd/system/macbook-suspend-fix.service << 'EOF'
+    dryrun tee /etc/systemd/system/macbook-suspend-fix.service > /dev/null << 'EOF'
 # Workaround for T2 apple-bce driver issues on resume
 # Some users see keyboard/trackpad unresponsive after suspend
 [Unit]
@@ -302,8 +315,8 @@ RemainAfterExit=yes
 WantedBy=suspend.target
 EOF
 
-    systemctl daemon-reload || true
-    systemctl enable macbook-suspend-fix.service || true
+    dryrun systemctl daemon-reload || true
+    dryrun systemctl enable macbook-suspend-fix.service || true
     success "Suspend resume fix service installed"
     info "This reloads apple-bce on wake to restore keyboard/trackpad if they freeze"
     mark_applied "sleep-suspend"
@@ -378,7 +391,7 @@ install_recommended_packages() {
 
     if [[ ${#to_install[@]} -gt 0 ]]; then
         info "Installing: ${to_install[*]}"
-        pacman -S --noconfirm "${to_install[@]}"
+        dryrun pacman -S --noconfirm "${to_install[@]}"
         success "Packages installed"
         mark_applied "recommended-packages"
     else

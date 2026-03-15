@@ -22,7 +22,7 @@ log()   { printf '[%s] %s\n' "$(date '+%H:%M:%S')" "$*"; }
 
 log "=== Security Tooling Setup ==="
 
-dryrun sudo pacman -Sy --needed --noconfirm gitleaks age sops openssh gnupg ufw
+dryrun sudo pacman -S --needed --noconfirm gitleaks age sops openssh gnupg ufw
 
 # Enable firewall
 dryrun sudo systemctl enable --now ufw || true

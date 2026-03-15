@@ -268,6 +268,9 @@ manage_boot_order() {
             ;;
         3)
             read -rp "Boot order (comma-separated IDs, e.g. 0001,0080): " order
+            if [[ ! "$order" =~ ^[0-9A-Fa-f]+(,[0-9A-Fa-f]+)*$ ]]; then
+                error "Invalid boot order format. Use comma-separated hex IDs (e.g. 0001,0080)"
+            fi
             efibootmgr -o "$order"
             success "Boot order set"
             ;;

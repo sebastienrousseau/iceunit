@@ -182,7 +182,7 @@ prepare_script() {
     SOURCEABLE_SCRIPT="${TEST_TEMP}/sourceable_$(basename "$script")"
 
     sed \
-        -e '/^set -euo pipefail$/d' \
+        -e '/^set -[Ee]*uo pipefail$/d' \
         -e '/^main "\$@"$/d' \
         -e '/^case "\${1:-}" in$/,/^esac$/d' \
         -e 's/\[\[ \$EUID -eq 0 \]\] || error/true || error/g' \
@@ -215,8 +215,7 @@ prepare_runnable_script() {
     RUNNABLE_SCRIPT="${TEST_TEMP}/runnable_$(basename "$script")"
 
     sed \
-        -e '/^set -euo pipefail$/d' \
-        -e '/^set -uo pipefail$/d' \
+        -e '/^set -[Ee]*uo pipefail$/d' \
         -e "s|/dev/mapper/|${TEST_TEMP}/dev_mapper/|g" \
         -e "s|/etc/|${TEST_TEMP}/etc/|g" \
         -e "s|/boot/|${TEST_TEMP}/boot/|g" \

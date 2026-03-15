@@ -112,7 +112,7 @@ create_image() {
     info "Allocating ${VAULT_SIZE} at ${VAULT_IMG}..."
     info "(This may take a moment for large sizes)"
     fallocate -l "$VAULT_SIZE" "$VAULT_IMG" \
-        || dd if=/dev/zero of="$VAULT_IMG" bs=1M count=0 seek="$(echo "$VAULT_SIZE" | numfmt --from=iec)" 2>/dev/null \
+        || dd if=/dev/zero of="$VAULT_IMG" bs=1M count=0 seek="$(( $(echo "$VAULT_SIZE" | numfmt --from=iec) / 1048576 ))" 2>/dev/null \
         || error "Failed to create vault image. Check available disk space."
 
     chmod 600 "$VAULT_IMG"
