@@ -4,10 +4,10 @@ Contributions are welcome. This guide covers the conventions and process for sub
 
 ## Script Conventions
 
-All scripts in `scripts/` follow these rules:
+All scripts in `scripts/`, `workstation/`, and `mise-plugins/` follow these rules:
 
 - **Shebang:** `#!/usr/bin/env bash` — never rely on the calling shell
-- **Strict mode:** `set -euo pipefail` — exit on error, undefined variables, or pipe failures
+- **Strict mode:** `set -Eeuo pipefail` — exit on error, inherit ERR traps, undefined variables, or pipe failures
 - **Colour output:** use `[INFO]`, `[OK]`, `[WARN]`, `[ERROR]` prefixes with ANSI colours — no emoji
 - **`--dry-run` flag:** every script must support `--dry-run` to preview actions without modifying the system
 - **`--help` flag:** every script must display usage information with `--help`
@@ -18,7 +18,7 @@ All scripts in `scripts/` follow these rules:
 
 ## ShellCheck
 
-All scripts must pass [ShellCheck](https://www.shellcheck.net/). The CI pipeline runs ShellCheck automatically on every push and pull request that touches `scripts/*.sh` or `tests/**`.
+All scripts must pass [ShellCheck](https://www.shellcheck.net/). The CI pipeline runs ShellCheck automatically on every push and pull request that touches `scripts/*.sh`, `workstation/*.sh`, or `mise-plugins/*/bin/*`.
 
 Run locally before submitting:
 
@@ -81,15 +81,36 @@ Each script has a corresponding page at `docs/scripts/<name>.md`. Follow the exi
 6. Prerequisites
 7. Source tip box linking to GitHub
 
+## Commit Signing
+
+All commits must be signed with GPG or SSH. Unsigned commits will not be merged.
+
+```bash
+# Configure GPG signing
+git config --global commit.gpgsign true
+git config --global user.signingkey <KEY_ID>
+
+# Or configure SSH signing
+git config --global gpg.format ssh
+git config --global user.signingkey ~/.ssh/id_ed25519.pub
+```
+
+Verify signing is active before submitting:
+
+```bash
+git log --show-signature -1
+```
+
 ## Pull Request Process
 
 1. Fork the repository and create a branch from `main`
-2. Make your changes following the conventions above
-3. Ensure `make lint` passes
-4. Ensure `make test` passes (or `make test-docker`)
-5. Ensure `make docs-build` succeeds if you changed documentation
-6. Submit a pull request with a clear description of the change and its motivation
-7. One approval from a maintainer is required before merging
+2. Make changes following the conventions above
+3. Sign all commits (GPG or SSH)
+4. Ensure `make lint` passes
+5. Ensure `make test` passes (or `make test-docker`)
+6. Ensure `make docs-build` succeeds if documentation changed
+7. Submit a pull request with a clear description of the change and its motivation
+8. One approval from a maintainer is required before merging
 
 ## Reporting Issues
 

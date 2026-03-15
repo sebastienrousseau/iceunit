@@ -80,6 +80,9 @@ run_test "w30-security-tools: --dry-run" \
 run_test "w40-dotfiles-link: --dry-run" \
     bash workstation/40-dotfiles-link.sh --dry-run
 
+run_test "w50-mise-plugins: --dry-run" \
+    bash workstation/50-mise-plugins.sh --dry-run
+
 # ── Results ──────────────────────────────────────────────────────────────────
 
 echo ""

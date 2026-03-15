@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+# Download Droid (Factory AI) binary for the current platform.
+# Expected env: ASDF_INSTALL_VERSION, ASDF_DOWNLOAD_PATH
+
+version="${ASDF_INSTALL_VERSION:?ASDF_INSTALL_VERSION is required}"
+download_path="${ASDF_DOWNLOAD_PATH:?ASDF_DOWNLOAD_PATH is required}"
+mkdir -p "$download_path"
+
+os="$(uname -s | tr '[:upper:]' '[:lower:]')"
+case "$os" in
+    linux)  platform="linux" ;;
+    darwin) platform="macos" ;;
+    *)
+        echo "Unsupported OS: $os" >&2
+        exit 1
+        ;;
+esac
+
+url="https://app.factory.ai/cli/download/${platform}/${version}"
+
+echo "Downloading Droid v${version} for ${platform}..."
+curl -fsSL -o "${download_path}/droid" "$url"
+chmod +x "${download_path}/droid"
+
+echo "Downloaded to ${download_path}/droid"

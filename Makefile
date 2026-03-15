@@ -1,7 +1,7 @@
 .PHONY: help install bootstrap lint test test-go test-docker test-integration \
        test-all verify docs docs-build docs-preview clean \
        init vault thermal wifi optimise bootloader mount unmount apps \
-       ai-dev gnome-tweaks devops security dotfiles
+       ai-dev gnome-tweaks devops security dotfiles mise-plugins
 
 SHELL := /bin/bash
 
@@ -72,10 +72,13 @@ security: ## Firewall & secrets hardening (30-security-tools.sh)
 dotfiles: ## Link dotfiles symlinks (40-dotfiles-link.sh)
 	bash workstation/40-dotfiles-link.sh $(FLAGS)
 
+mise-plugins: ## Mise plugin infrastructure for AI tools (50-mise-plugins.sh)
+	bash workstation/50-mise-plugins.sh $(FLAGS)
+
 # ── Lint ─────────────────────────────────────────────────────────────────────
 
 lint: ## Run ShellCheck on all scripts and Go lint
-	shellcheck scripts/*.sh workstation/*.sh
+	shellcheck scripts/*.sh workstation/*.sh mise-plugins/*/bin/*
 	cd installer && go vet ./... && go fmt ./...
 
 # ── Test ─────────────────────────────────────────────────────────────────────

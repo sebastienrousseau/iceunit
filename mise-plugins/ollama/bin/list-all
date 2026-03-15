@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+# Fetch available Ollama versions from GitHub releases (oldest first).
+# Outputs a space-separated list of stable versions (X.Y.Z only).
+
+api_url="https://api.github.com/repos/ollama/ollama/tags?per_page=100"
+
+curl_args=(-sS)
+if [[ -n "${GITHUB_API_TOKEN:-}" ]]; then
+    curl_args+=(-H "Authorization: token ${GITHUB_API_TOKEN}")
+fi
+
+versions=$(curl "${curl_args[@]}" "$api_url" \
+    | grep -oP '"name":\s*"v?\K[0-9]+\.[0-9]+\.[0-9]+' \
+    | sort -t. -k1,1n -k2,2n -k3,3n)
+
+printf '%s' "$versions" | tr '\n' ' '
+echo

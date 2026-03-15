@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+# Download Claude Code binary for the current platform.
+# Expected env: ASDF_INSTALL_VERSION, ASDF_DOWNLOAD_PATH
+
+version="${ASDF_INSTALL_VERSION:?ASDF_INSTALL_VERSION is required}"
+download_path="${ASDF_DOWNLOAD_PATH:?ASDF_DOWNLOAD_PATH is required}"
+mkdir -p "$download_path"
+
+os="$(uname -s | tr '[:upper:]' '[:lower:]')"
+arch="$(uname -m)"
+[[ "$arch" == "x86_64" ]] && arch="x64"
+[[ "$arch" == "aarch64" ]] && arch="arm64"
+
+url="https://code.claude.com/installers/claude-${os}-${arch}-${version}.tar.gz"
+
+echo "Downloading Claude Code v${version} from ${url}..."
+curl -fsSL -o "${download_path}/claude.tar.gz" "$url"
+tar -xzf "${download_path}/claude.tar.gz" -C "$download_path"
+
+echo "Downloaded to ${download_path}"

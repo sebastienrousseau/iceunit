@@ -329,7 +329,7 @@ export default defineConfig({
         title: 'v1.1.0 — March 2026',
         date: new Date('2026-03-08'),
         description:
-          'Added --dry-run and --help flags, 148 unit tests, Docker-based CI, and security hardening.',
+          'Added --dry-run and --help flags, 230 unit tests, Docker-based CI, mise plugin infrastructure, and security hardening.',
         link: `${SITE_URL}/changelog`,
       },
       {
@@ -484,6 +484,7 @@ export default defineConfig({
             { text: '20 · DevOps Tools', link: '/workstation/20-devops-tools' },
             { text: '30 · Security Tools', link: '/workstation/30-security-tools' },
             { text: '40 · Dotfiles Link', link: '/workstation/40-dotfiles-link' },
+            { text: '50 · Mise Plugins', link: '/workstation/50-mise-plugins' },
           ],
         },
       ],

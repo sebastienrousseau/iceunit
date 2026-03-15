@@ -64,6 +64,10 @@ cachyos-macbook-intel-2020/
 │   ├── main_test.go             # Installer unit tests
 │   ├── go.mod                   # Go module definition
 │   └── installer_bin            # Compiled installer binary
+├── mise-plugins/                # Mise plugin infrastructure for AI tools
+│   ├── ollama/bin/              # Ollama version manager (list-all, download, install)
+│   ├── claude-code/bin/         # Claude Code version manager
+│   └── droid-factory/bin/       # Droid (Factory AI) version manager
 ├── scripts/                     # Core hardware automation scripts
 │   ├── 00-setup-vault.sh        # Encrypted vault creation
 │   ├── 00-system-init.sh        # Smart package synchronisation
@@ -76,7 +80,7 @@ cachyos-macbook-intel-2020/
 │   ├── 07-install-apps.sh       # Standard application suite
 │   └── 99-verify-install.sh     # System health audit
 ├── tests/                       # Unit and integration test suites
-│   ├── *.bats                   # 174 unit tests (bats-core)
+│   ├── *.bats                   # 230 unit tests (bats-core)
 │   ├── Dockerfile.unit          # Unit test container
 │   ├── Dockerfile.integration   # Integration test container
 │   ├── setup-bats.sh            # BATS installation helper
@@ -87,7 +91,8 @@ cachyos-macbook-intel-2020/
 │   ├── 10-gnome-productivity.sh # GNOME UI tweaks
 │   ├── 20-devops-tools.sh       # K8s & Cloud-native tools
 │   ├── 30-security-tools.sh     # Firewall & Secrets hardening
-│   └── 40-dotfiles-link.sh      # Symbolic configuration links
+│   ├── 40-dotfiles-link.sh      # Symbolic configuration links
+│   └── 50-mise-plugins.sh      # Mise plugin infrastructure
 ├── bootstrap-dotfiles.sh        # Dotfiles bootstrap helper
 ├── install.sh                   # Unified Iceunit (ICU) installer entry point
 ├── Makefile                     # Task runner for install, verify, and test
@@ -124,6 +129,7 @@ All scripts support `DRY_RUN=1` to preview changes and `--help` for usage inform
 | `20-devops-tools.sh` | K8s & Terraform Stack | Optional | `sudo` | [Reference](https://iceunit.com/workstation/20-devops-tools) |
 | `30-security-tools.sh` | Firewall & Secrets | Optional | `sudo` | [Reference](https://iceunit.com/workstation/30-security-tools) |
 | `40-dotfiles-link.sh` | Symbolic Config Links | Optional | User | [Reference](https://iceunit.com/workstation/40-dotfiles-link) |
+| `50-mise-plugins.sh` | Mise Plugin Infrastructure | Optional | User | [Reference](https://iceunit.com/workstation/50-mise-plugins) |
 
 ---
 

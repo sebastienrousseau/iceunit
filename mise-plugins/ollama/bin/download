@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+# Download Ollama binary archive for the current platform.
+# Expected env: ASDF_INSTALL_VERSION, ASDF_DOWNLOAD_PATH
+
+version="${ASDF_INSTALL_VERSION:?ASDF_INSTALL_VERSION is required}"
+download_path="${ASDF_DOWNLOAD_PATH:?ASDF_DOWNLOAD_PATH is required}"
+mkdir -p "$download_path"
+
+os="$(uname -s | tr '[:upper:]' '[:lower:]')"
+arch="$(uname -m)"
+[[ "$arch" == "x86_64" ]] && arch="amd64"
+[[ "$arch" == "aarch64" ]] && arch="arm64"
+
+case "$os" in
+    linux)
+        filename="ollama-linux-${arch}.tgz"
+        ;;
+    darwin)
+        filename="Ollama-darwin.zip"
+        ;;
+    *)
+        echo "Unsupported OS: $os" >&2
+        exit 1
+        ;;
+esac
+
+url="https://github.com/ollama/ollama/releases/download/v${version}/${filename}"
+echo "Downloading Ollama ${version} from ${url}..."
+curl -fsSL -o "${download_path}/${filename}" "$url"
+
+echo "Downloaded to ${download_path}/${filename}"

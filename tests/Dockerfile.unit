@@ -13,6 +13,7 @@ RUN useradd -m testuser
 WORKDIR /repo
 COPY scripts/ ./scripts/
 COPY workstation/ ./workstation/
+COPY mise-plugins/ ./mise-plugins/
 COPY tests/*.bats ./tests/
 COPY tests/test_helper.bash ./tests/
 

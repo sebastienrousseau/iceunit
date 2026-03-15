@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+# Fetch available Claude Code versions from the release channel.
+# Outputs a space-separated list, oldest first.
+
+versions=$(curl -sS https://code.claude.com/updates/versions.json \
+    | grep -oE '"version": "[0-9]+\.[0-9]+\.[0-9]+"' \
+    | cut -d'"' -f4 \
+    | sort -t. -k1,1n -k2,2n -k3,3n)
+
+printf '%s' "$versions" | tr '\n' ' '
+echo
