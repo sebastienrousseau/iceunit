@@ -219,10 +219,15 @@ enable_services() {
     header "Enabling Services"
 
     # Restart thermald with new config
-    systemctl restart thermald || warn "thermald restart failed — continuing"
+    dryrun systemctl restart thermald || warn "thermald restart failed — continuing"
 
     # Enable and start mbpfan
-    systemctl enable --now mbpfan
+    dryrun systemctl enable --now mbpfan
+
+    if $DRY_RUN; then
+        success "mbpfan would be enabled and started"
+        return 0
+    fi
 
     # Wait for mbpfan to become active (up to 10 seconds)
     local attempts=0
@@ -253,7 +258,11 @@ verify() {
     fi
 
     info "mbpfan service status:"
-    systemctl status mbpfan --no-pager -l | head -15
+    if ! $DRY_RUN; then
+        systemctl status mbpfan --no-pager -l | head -15
+    else
+        info "(skipped in dry-run mode)"
+    fi
 
     info "Current temperatures:"
     sensors 2>/dev/null | grep -E "(Package|Core [0-9]|TCMX|TC0P)" | head -8 || true
