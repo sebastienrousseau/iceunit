@@ -13,6 +13,7 @@ setup() {
     mock_command curl 0
     mock_command tar 0
     mock_command modprobe 0
+    mock_command sha256sum 0 "hash  file"
 }
 
 teardown() {
@@ -168,6 +169,35 @@ teardown() {
     [[ "$output" == *"backup"* ]]
     [[ "$output" == *"restore"* ]]
     [[ "$output" == *"install-pkg"* ]]
+}
+
+# ── interactive ──────────────────────────────────────────────────────────────
+
+@test "interactive: shows menu options" {
+    run bash -c "
+        export PATH='${PATH}'
+        export HOME='${HOME}'
+        export MOCK_CALLS='${MOCK_CALLS}'
+        export TEST_TEMP='${TEST_TEMP}'
+        source '${SOURCEABLE_SCRIPT}'
+        printf 'q\n' | interactive
+    "
+
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"Verify current firmware"* ]] || [[ "$output" == *"verify"* ]] || [[ "$output" == *"Wi-Fi"* ]]
+}
+
+@test "interactive: quit exits cleanly" {
+    run bash -c "
+        export PATH='${PATH}'
+        export HOME='${HOME}'
+        export MOCK_CALLS='${MOCK_CALLS}'
+        export TEST_TEMP='${TEST_TEMP}'
+        source '${SOURCEABLE_SCRIPT}'
+        printf 'q\n' | interactive
+    "
+
+    [ "$status" -eq 0 ]
 }
 
 # ── shebang and standards ───────────────────────────────────────────────────

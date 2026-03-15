@@ -19,6 +19,7 @@ All scripts live in the `scripts/` directory. They are numbered to indicate the 
 | [`05-mount-vault.sh`](/scripts/05-mount-vault) | Unlock and mount the code vault | Optional | `make mount` |
 | [`06-unmount-vault.sh`](/scripts/06-unmount-vault) | Lock and unmount the code vault | Optional | `make unmount` |
 | [`07-install-apps.sh`](/scripts/07-install-apps) | Standard application suite | Recommended | `make apps` |
+| [`08-maintenance.sh`](/scripts/08-maintenance) | Periodic system maintenance | Recommended | `make maintenance` |
 | [`99-verify-install.sh`](/scripts/99-verify-install) | **Audit** — verify system health | Recommended | `make verify` |
 
 All scripts support dry-run mode: `make <target> DRY_RUN=1` (e.g. `make thermal DRY_RUN=1`).

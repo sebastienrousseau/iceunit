@@ -469,6 +469,7 @@ export default defineConfig({
               link: '/scripts/06-unmount-vault',
             },
             { text: '07 · Install Apps', link: '/scripts/07-install-apps' },
+            { text: '08 · Maintenance', link: '/scripts/08-maintenance' },
             { text: '99 · Verify Install', link: '/scripts/99-verify-install' },
           ],
         },
@@ -479,6 +480,7 @@ export default defineConfig({
           text: 'Workstation',
           items: [
             { text: 'Overview', link: '/workstation/overview' },
+            { text: '05 · Desktop Base', link: '/workstation/05-desktop-base' },
             { text: '00 · AI Dev Stack', link: '/workstation/00-ai-dev-workstation' },
             { text: '10 · GNOME Speed', link: '/workstation/10-gnome-productivity' },
             { text: '20 · DevOps Tools', link: '/workstation/20-devops-tools' },

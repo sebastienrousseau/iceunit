@@ -371,7 +371,55 @@ check_power_profiles() {
     mark_skipped "power-profiles (manual decision required)"
 }
 
-# ── 8. Useful packages ────────────────────────────────────────────────────────
+# ── 8. Intel i915 GUC/HUC firmware loading ────────────────────────────────────
+configure_i915() {
+    header "Intel Iris Plus Graphics (GUC/HUC)"
+
+    local conf_file="/etc/modprobe.d/i915.conf"
+
+    if [[ -f "$conf_file" ]] && grep -q "enable_guc" "$conf_file" 2>/dev/null; then
+        skip "i915 GUC/HUC config already exists at ${conf_file}"
+        mark_skipped "i915-guc-huc"
+        return
+    fi
+
+    info "Enabling GUC/HUC firmware loading for Ice Lake (Iris Plus G7)..."
+    dryrun tee "$conf_file" > /dev/null << 'EOF'
+# Intel Iris Plus G7 (Ice Lake) — enable GuC/HuC firmware offloading
+# GUC: GPU microcontroller for scheduling — reduces CPU overhead
+# HUC: HEVC/H.265 decode offloading — improves video playback efficiency
+# FBC: Frame buffer compression — saves memory bandwidth
+options i915 enable_guc=3 enable_fbc=1
+EOF
+
+    success "i915 GUC/HUC config written to ${conf_file}"
+    warn "Reboot required to load GUC/HUC firmware"
+    mark_applied "i915-guc-huc"
+}
+
+# ── 9. RTC UTC (dual-boot clock sync) ────────────────────────────────────────
+configure_rtc() {
+    header "RTC Clock Sync (Dual-Boot)"
+
+    # macOS stores UTC in the hardware clock. Linux should also use UTC
+    # to prevent the clock jumping when switching between OSes.
+    local current_rtc
+    current_rtc=$(timedatectl show --property=LocalRTC --value 2>/dev/null || echo "unknown")
+
+    if [[ "$current_rtc" == "no" ]]; then
+        success "RTC already set to UTC — matches macOS, dual-boot clock sync OK"
+        mark_skipped "rtc-utc"
+        return
+    fi
+
+    info "Setting hardware clock to UTC for macOS/CachyOS dual-boot..."
+    info "macOS uses UTC for the hardware clock — Linux must match to avoid clock drift."
+    dryrun timedatectl set-local-rtc 0 --adjust-system-clock
+    success "RTC set to UTC"
+    mark_applied "rtc-utc"
+}
+
+# ── 10. Useful packages ───────────────────────────────────────────────────────
 install_recommended_packages() {
     header "Recommended Packages"
 
@@ -422,7 +470,7 @@ print_summary() {
 
     echo ""
     echo -e "${BOLD}Next steps:${RESET}"
-    echo "  1. Reboot to apply kernel cmdline changes"
+    echo "  1. Reboot to apply kernel cmdline and i915 GUC/HUC changes"
     echo "  2. Run: systemctl --user restart pipewire pipewire-pulse"
     echo "  3. Review TLP vs power-profiles-daemon conflict (see above)"
     echo "  4. Update /etc/fstab BTRFS mount options (see above)"
@@ -445,6 +493,8 @@ main() {
         optimise_tlp
         optimise_btrfs
         optimise_sleep
+        configure_i915
+        configure_rtc
         install_recommended_packages
         verify_zram
         check_power_profiles

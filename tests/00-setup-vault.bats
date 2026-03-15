@@ -205,6 +205,17 @@ teardown() {
     [[ "$output" == *"NOT auto-mounted"* ]]
 }
 
+# ── backup_luks_header ──────────────────────────────────────────────────────
+
+@test "backup_luks_header: creates header backup file" {
+    VAULT_IMG="$TEST_HOME/.vault.img"
+    touch "$VAULT_IMG"
+    run backup_luks_header
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"LUKS header backed up"* ]]
+    assert_mock_called_with sudo "cryptsetup luksHeaderBackup"
+}
+
 # ── shebang and standards ───────────────────────────────────────────────────
 
 @test "setup vault: uses #!/usr/bin/env bash" {

@@ -78,6 +78,7 @@ cachyos-macbook-intel-2020/
 │   ├── 05-mount-vault.sh        # Unlock and mount vault
 │   ├── 06-unmount-vault.sh      # Lock and unmount vault
 │   ├── 07-install-apps.sh       # Standard application suite
+│   ├── 08-maintenance.sh        # Periodic maintenance
 │   └── 99-verify-install.sh     # System health audit
 ├── tests/                       # Unit and integration test suites
 │   ├── *.bats                   # 230 unit tests (bats-core)
@@ -87,6 +88,7 @@ cachyos-macbook-intel-2020/
 │   ├── test_helper.bash         # Test framework & mocks
 │   └── integration/             # Integration test scripts
 ├── workstation/                 # Workstation provisioning modules
+│   ├── 05-desktop-base.sh       # Desktop foundation (GNOME, fonts, timers)
 │   ├── 00-ai-dev-workstation.sh # AI/LLM & Dev stack
 │   ├── 10-gnome-productivity.sh # GNOME UI tweaks
 │   ├── 20-devops-tools.sh       # K8s & Cloud-native tools
@@ -116,6 +118,7 @@ cachyos-macbook-intel-2020/
 | `05-mount-vault.sh` | Unlock and mount vault | Optional | `make mount` | [Reference](https://iceunit.com/scripts/05-mount-vault) |
 | `06-unmount-vault.sh` | Lock and unmount vault | Optional | `make unmount` | [Reference](https://iceunit.com/scripts/06-unmount-vault) |
 | `07-install-apps.sh` | Standard application suite | Recommended | `make apps` | [Reference](https://iceunit.com/scripts/07-install-apps) |
+| `08-maintenance.sh` | Periodic maintenance | Recommended | `make maintenance` | [Reference](https://iceunit.com/scripts/08-maintenance) |
 | `99-verify-install.sh` | System health audit | Recommended | `make verify` | [Reference](https://iceunit.com/scripts/99-verify-install) |
 
 All scripts support `DRY_RUN=1` to preview changes and `--help` for usage information.
@@ -124,6 +127,7 @@ All scripts support `DRY_RUN=1` to preview changes and `--help` for usage inform
 
 | Script | Purpose | Status | Run As | Docs |
 |---|---|---|---|---|
+| `05-desktop-base.sh` | Desktop Foundation | Recommended | `sudo` | [Reference](https://iceunit.com/workstation/05-desktop-base) |
 | `00-ai-dev-workstation.sh` | AI/LLM & Dev Stack | Optional | `sudo` | [Reference](https://iceunit.com/workstation/00-ai-dev-workstation) |
 | `10-gnome-productivity.sh` | GNOME Speed & UI Tweaks | Optional | User | [Reference](https://iceunit.com/workstation/10-gnome-productivity) |
 | `20-devops-tools.sh` | K8s & Terraform Stack | Optional | `sudo` | [Reference](https://iceunit.com/workstation/20-devops-tools) |

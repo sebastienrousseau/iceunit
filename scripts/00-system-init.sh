@@ -41,6 +41,24 @@ if [ ${#MISSING_PKGS[@]} -eq 0 ]; then
     exit 0
 fi
 
+# ── MIRROR RANKING ───────────────────────────────────────────────────────────
+# Rank mirrors before installation for faster downloads
+if command -v cachyos-rate-mirrors &>/dev/null; then
+    printf '\033[0;36m[INFO]\033[0m Ranking mirrors via cachyos-rate-mirrors...\n'
+    dryrun cachyos-rate-mirrors
+    printf '\033[0;32m[OK]\033[0m Mirrors ranked.\n'
+elif command -v rate-mirrors &>/dev/null; then
+    printf '\033[0;36m[INFO]\033[0m Ranking mirrors via rate-mirrors...\n'
+    dryrun bash -c 'rate-mirrors --protocol https arch | sudo tee /etc/pacman.d/mirrorlist > /dev/null'
+    printf '\033[0;32m[OK]\033[0m Mirrors ranked.\n'
+elif command -v reflector &>/dev/null; then
+    printf '\033[0;36m[INFO]\033[0m Ranking mirrors via reflector...\n'
+    dryrun reflector --latest 10 --protocol https --sort rate --save /etc/pacman.d/mirrorlist
+    printf '\033[0;32m[OK]\033[0m Mirrors ranked.\n'
+else
+    printf '\033[1;33m[WARN]\033[0m No mirror ranker found. Install cachyos-rate-mirrors, rate-mirrors, or reflector for faster updates.\n'
+fi
+
 # ── INSTALLATION ──────────────────────────────────────────────────────────────
 printf '\033[0;36m[INFO]\033[0m Missing %d packages. Synchronising...\n' "${#MISSING_PKGS[@]}"
 

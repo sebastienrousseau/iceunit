@@ -13,8 +13,9 @@ The `00-system-init.sh` script is the entry point for the Iceunit configuration.
 
 1. **Pre-flight Audit**: It uses `pacman -Qq` to scan your local database in milliseconds.
 2. **Intelligent Skip**: If all required packages are already installed, it skips the network synchronization entirely.
-3. **Conflict Resolution**: It automatically handles known file conflicts (e.g., untracked `ollama` directories) to ensure a smooth transaction.
-4. **Optimized Sync**: It bundles all missing packages into a single `pacman` transaction to minimize database locks and disk I/O.
+3. **Mirror Ranking**: Before installing, it ranks mirrors using `cachyos-rate-mirrors`, `rate-mirrors`, or `reflector` (whichever is available) for faster downloads.
+4. **Conflict Resolution**: It automatically handles known file conflicts (e.g., untracked `ollama` directories) to ensure a smooth transaction.
+5. **Optimized Sync**: It bundles all missing packages into a single `pacman` transaction to minimize database locks and disk I/O.
 
 ## Usage
 

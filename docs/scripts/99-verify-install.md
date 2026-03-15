@@ -25,6 +25,8 @@ Verifies the active status of critical background daemons:
 Inspects configuration files and the active kernel state:
 - **T2 Compatibility**: Checks for `intel_idle.max_cstate=4` and other critical T2 parameters.
 - **Sleep Mode**: Confirms `deep` sleep is the default.
+- **GPU Offload**: Verifies i915 GUC/HUC firmware offloading is configured.
+- **Clock Sync**: Confirms RTC is set to UTC to match macOS.
 - **Performance**: Validates Ice Lake-specific `sysctl` tweaks.
 
 ### 4. Firmware & Storage
@@ -34,8 +36,14 @@ Inspects configuration files and the active kernel state:
 ## Running
 
 ```bash
-make verify
+make verify                                   # Standard audit
+bash scripts/99-verify-install.sh --auto-fix  # Auto-fix failed checks
 ```
+
+| Flag | Description |
+|---|---|
+| `--auto-fix` | Automatically run the relevant fix scripts for any failed checks |
+| `--help` | Show usage information and exit |
 
 ## Visual Indicators
 

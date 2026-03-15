@@ -31,6 +31,14 @@ teardown() {
     common_teardown
 }
 
+# ── require_root ─────────────────────────────────────────────────────────────
+
+@test "require_root: passes when EUID is 0" {
+    # In the sourced script, require_root is neutered to 'true'
+    run require_root
+    [ "$status" -eq 0 ]
+}
+
 # ── show_status ──────────────────────────────────────────────────────────────
 
 @test "status: shows boot configuration" {

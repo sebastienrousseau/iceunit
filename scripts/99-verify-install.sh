@@ -4,14 +4,46 @@
 # Clean, professional audit script matching the Iceunit (ICU) design.
 # =============================================================================
 
-# Handle --help before strict mode
+# Handle flags before strict mode
+AUTO_FIX=false
 for arg in "$@"; do
+    [[ "$arg" == "--auto-fix" ]] && AUTO_FIX=true
     [[ "$arg" == "--help" || "$arg" == "-h" ]] && {
-        echo "Usage: bash $0 [--help]"
+        echo "Usage: bash $0 [--auto-fix] [--help]"
         echo "Verify the health of the entire Iceunit installation."
+        echo ""
+        echo "Flags:"
+        echo "  --auto-fix   Automatically run fix scripts for failed checks"
+        echo "  --help       Show this help message"
         exit 0
     }
 done
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Auto-fix tracking: map categories to fix scripts
+declare -A FIX_SCRIPTS
+FIX_SCRIPTS=(
+    [packages]="sudo bash ${SCRIPT_DIR}/00-system-init.sh --yes"
+    [thermal]="sudo bash ${SCRIPT_DIR}/01-thermal-setup.sh"
+    [optimise]="sudo bash ${SCRIPT_DIR}/03-optimise.sh --yes"
+    [vault]="bash ${SCRIPT_DIR}/05-mount-vault.sh"
+    [maintenance]="sudo bash ${SCRIPT_DIR}/08-maintenance.sh"
+    [desktop]="sudo bash ${SCRIPT_DIR}/../workstation/05-desktop-base.sh"
+)
+FIX_NEEDED=()
+
+auto_fix_mark() {
+    local category="$1"
+    if [[ -n "${FIX_SCRIPTS[$category]:-}" ]]; then
+        # Only add if not already in the list
+        local already=false
+        for f in "${FIX_NEEDED[@]}"; do
+            [[ "$f" == "$category" ]] && already=true
+        done
+        $already || FIX_NEEDED+=("$category")
+    fi
+}
 
 # NOTE: -e is intentionally omitted — the check() function uses eval in
 # conditionals that return non-zero for missing/inactive items. With -e
@@ -75,6 +107,7 @@ if [ "$MISSING_COUNT" -eq 0 ]; then
 else
     MISSING_STR="${MISSING_PKGS[*]}"
     printf "  %b %b %b %b\n" "$CROSS" "${LABEL}Core Packages${RESET}" "${DIM}($MISSING_COUNT missing)${RESET}" "${YELLOW}Missing: ${MISSING_STR:0:45}...${RESET}"
+    auto_fix_mark "packages"
 fi
 
 # Container package check (Mandatory to have at least one)
@@ -84,9 +117,19 @@ else
     check "Container Runtime" "Docker/Podman" "false" "Install docker or podman"
 fi
 
-# ── 2. SERVICES ──────────────────────────────────────────────────────────────
+# ── 2. DESKTOP FOUNDATION ────────────────────────────────────────────────────
+header "Desktop Foundation"
+check "Display Manager" "GDM" "pacman -Qq gdm" || auto_fix_mark "desktop"
+check "Network" "NetworkManager" "systemctl is-active NetworkManager" || auto_fix_mark "desktop"
+check "Fonts" "noto-fonts" "pacman -Qq noto-fonts" || auto_fix_mark "desktop"
+check "Firmware Updates" "fwupd" "pacman -Qq fwupd" || auto_fix_mark "desktop"
+check "CPU Microcode" "intel-ucode" "pacman -Qq intel-ucode" || auto_fix_mark "desktop"
+check "SSD TRIM Timer" "fstrim.timer" "systemctl is-enabled fstrim.timer" || auto_fix_mark "desktop"
+check "Bluetooth" "bluetooth.service" "systemctl is-enabled bluetooth" || auto_fix_mark "desktop"
+
+# ── 3. SERVICES ──────────────────────────────────────────────────────────────
 header "Service Verification"
-check "Thermal Control" "mbpfan" "systemctl is-active mbpfan"
+check "Thermal Control" "mbpfan" "systemctl is-active mbpfan" || auto_fix_mark "thermal"
 
 # TLP vs PPD check: Success if TLP is active OR if PPD is masked
 TLP_ACTIVE="systemctl is-active tlp"
@@ -112,13 +155,13 @@ else
     check "Containers" "Docker/Podman" "false"
 fi
 
-# ── 3. OPTIMISATION ──────────────────────────────────────────────────────────
+# ── 4. OPTIMISATION ──────────────────────────────────────────────────────────
 header "Hardware Optimisation"
 check "T2 Driver" "apple-bce" "lsmod | grep -q apple_bce"
 check "SSD Health" "NVMe TRIM" "findmnt -no OPTIONS / | grep -q 'discard=async'"
-check "Thermal Curve" "/etc/mbpfan.conf" "[ -f /etc/mbpfan.conf ]"
-check "System Performance" "Sysctl Tweaks" "[ -f /etc/sysctl.d/99-macbook-air-2020.conf ]"
-check "Power Profile" "TLP Config" "[ -f /etc/tlp.d/10-macbook-air-2020.conf ]"
+check "Thermal Curve" "/etc/mbpfan.conf" "[ -f /etc/mbpfan.conf ]" || auto_fix_mark "thermal"
+check "System Performance" "Sysctl Tweaks" "[ -f /etc/sysctl.d/99-macbook-air-2020.conf ]" || auto_fix_mark "optimise"
+check "Power Profile" "TLP Config" "[ -f /etc/tlp.d/10-macbook-air-2020.conf ]" || auto_fix_mark "optimise"
 
 # Intelligent kernel check
 KERNEL_SET="grep -q 'intel_idle.max_cstate=4' /etc/kernel/cmdline"
@@ -131,9 +174,11 @@ else
     check "T2 Compatibility" "Kernel Params" "false"
 fi
 
-check "Sleep Mode" "Deep Sleep" "grep -q '\[deep\]' /sys/power/mem_sleep"
+check "Sleep Mode" "Deep Sleep" "grep -q '\[deep\]' /sys/power/mem_sleep" || auto_fix_mark "optimise"
+check "GPU Offload" "i915 GUC/HUC" "[ -f /etc/modprobe.d/i915.conf ]" || auto_fix_mark "optimise"
+check "Clock Sync" "RTC UTC" "timedatectl show --property=LocalRTC --value 2>/dev/null | grep -q no" || auto_fix_mark "optimise"
 
-# ── 4. FIRMWARE & STORAGE ────────────────────────────────────────────────────
+# ── 5. FIRMWARE & STORAGE ────────────────────────────────────────────────────
 header "Firmware & Storage"
 check "Wi-Fi Driver" "BCM4377b" "[ -f /lib/firmware/brcm/brcmfmac4377b3-pcie.apple,fiji.bin ]"
 check "Interface" "wlan0" "ip link show wlan0"
@@ -150,14 +195,14 @@ else
     check "Code Vault" "Missing image" "false"
 fi
 
-check "Vault Mounting" "\$HOME/Code" "findmnt -rno TARGET '$REAL_HOME/Code' || findmnt -rno TARGET /root/Code"
+check "Vault Mounting" "\$HOME/Code" "findmnt -rno TARGET '$REAL_HOME/Code' || findmnt -rno TARGET /root/Code" || auto_fix_mark "vault"
 
-# ── 5. DEVELOPER ENVIRONMENT ─────────────────────────────────────────────────
+# ── 6. DEVELOPER ENVIRONMENT ─────────────────────────────────────────────────
 header "Developer Environment"
 check "Git Signing Key" "user.signingkey" "git config --get user.signingkey"
 check "Git GPG Signing" "commit.gpgsign" "[[ \$(git config --get commit.gpgsign 2>/dev/null) == 'true' ]]"
 
-# ── 6. APPLICATION SUITE ─────────────────────────────────────────────────────
+# ── 7. APPLICATION SUITE ─────────────────────────────────────────────────────
 header "Application Suite"
 APPS=(google-chrome brave-bin libreoffice-fresh loupe gnome-screenshot vlc ghostty zed extension-manager virt-manager nautilus)
 MISSING_APPS=()
@@ -175,6 +220,25 @@ else
 fi
 
 printf "\n%bVerification Complete.%b\n" "$LABEL" "$RESET"
-printf "Run %bsudo make install%b to fix any issues.\n\n" "$HEADER" "$RESET"
+
+# ── AUTO-FIX ────────────────────────────────────────────────────────────────
+if $AUTO_FIX && [ ${#FIX_NEEDED[@]} -gt 0 ]; then
+    printf "\n%b--auto-fix: Running fix scripts for %d categories...%b\n\n" "$HEADER" "${#FIX_NEEDED[@]}" "$RESET"
+    for category in "${FIX_NEEDED[@]}"; do
+        local_cmd="${FIX_SCRIPTS[$category]}"
+        printf "  %b Fixing: %s%b\n" "$YELLOW" "$category" "$RESET"
+        printf "  %b Command: %s%b\n" "$DIM" "$local_cmd" "$RESET"
+        if eval "$local_cmd"; then
+            printf "  %b %s fixed successfully%b\n\n" "$CHECK" "$category" "$RESET"
+        else
+            printf "  %b %s fix failed (exit %d)%b\n\n" "$CROSS" "$category" "$?" "$RESET"
+        fi
+    done
+    printf "%bAuto-fix complete. Re-run %bmake verify%b to confirm.%b\n\n" "$LABEL" "$HEADER" "$LABEL" "$RESET"
+elif $AUTO_FIX; then
+    printf "%bNo fixes needed — all checks passed.%b\n\n" "$LABEL" "$RESET"
+else
+    printf "Run %bsudo make install%b to fix any issues, or %b--auto-fix%b for targeted repairs.\n\n" "$HEADER" "$RESET" "$HEADER" "$RESET"
+fi
 
 exit 0

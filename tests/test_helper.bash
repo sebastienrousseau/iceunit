@@ -22,6 +22,7 @@ common_setup() {
     mkdir -p "${TEST_TEMP}/etc/tlp.d"
     mkdir -p "${TEST_TEMP}/etc/mbpfan"
     mkdir -p "${TEST_TEMP}/etc/thermald"
+    mkdir -p "${TEST_TEMP}/etc/modprobe.d"
     mkdir -p "${TEST_TEMP}/etc/systemd/system"
     mkdir -p "${TEST_TEMP}/boot/EFI/refind"
     mkdir -p "${TEST_TEMP}/dev_mapper"

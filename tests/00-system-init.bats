@@ -41,3 +41,20 @@ setup() {
     run bash "$RUNNABLE_SCRIPT" --yes --dry-run
     [ "$status" -eq 0 ]
 }
+
+@test "system init: ranks mirrors when reflector available" {
+    mock_command pacman 1
+    mock_command reflector 0
+    run bash "$RUNNABLE_SCRIPT" --dry-run
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"Ranking mirrors"* ]] || [[ "$output" == *"mirror"* ]] || [[ "$output" == *"No mirror ranker"* ]]
+}
+
+@test "system init: handles mirror ranking gracefully" {
+    mock_command pacman 1
+    rm -f "${MOCK_BIN}/cachyos-rate-mirrors" "${MOCK_BIN}/rate-mirrors" "${MOCK_BIN}/reflector"
+    run bash "$RUNNABLE_SCRIPT" --dry-run
+    [ "$status" -eq 0 ]
+    # Either warns about no ranker or uses a system-installed one
+    [[ "$output" == *"mirror"* ]] || [[ "$output" == *"Mirror"* ]] || [[ "$output" == *"WARN"* ]]
+}

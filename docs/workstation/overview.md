@@ -10,6 +10,7 @@ In addition to the core hardware scripts, the repository includes a suite of wor
 
 | Script | Purpose | Status | Run As | Docs |
 |---|---|---|---|---|
+| [`05-desktop-base.sh`](/workstation/05-desktop-base) | Desktop Foundation | Recommended | `sudo` | [Reference](/workstation/05-desktop-base) |
 | [`00-ai-dev-workstation.sh`](/workstation/00-ai-dev-workstation) | AI/LLM & Dev Stack | Optional | `sudo` | [Reference](/workstation/00-ai-dev-workstation) |
 | [`10-gnome-productivity.sh`](/workstation/10-gnome-productivity) | GNOME Speed & UI Tweaks | Optional | User | [Reference](/workstation/10-gnome-productivity) |
 | [`20-devops-tools.sh`](/workstation/20-devops-tools) | K8s & Terraform Stack | Optional | `sudo` | [Reference](/workstation/20-devops-tools) |

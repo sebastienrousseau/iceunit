@@ -45,7 +45,7 @@ FIRMWARE_DIR="/lib/firmware/brcm"
 BACKUP_DIR="$HOME/.config/firmware-backup/brcm"
 PACKAGE_URL="https://mirror.funami.tech/arch-mact2/os/x86_64/apple-bcm-firmware-14.0-1-any.pkg.tar.zst"
 # SHA256 of the known-good apple-bcm-firmware-14.0-1 package
-PACKAGE_SHA256="expected-sha256-hash-must-be-set-before-first-use"
+PACKAGE_SHA256="89337f766e4a2e57833075c324838686700818274a29a8a70669273410368144"
 
 # ── Mode selection ────────────────────────────────────────────────────────────
 usage() {

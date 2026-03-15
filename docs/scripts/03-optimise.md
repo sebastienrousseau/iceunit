@@ -61,7 +61,13 @@ Confirms deep sleep is active. Installs `macbook-suspend-fix.service` that reloa
 ### 7. ZRAM Verification
 Confirms ZRAM is configured (no changes made).
 
-### 8. Power Profiles Check
+### 8. Intel i915 GUC/HUC
+Writes `/etc/modprobe.d/i915.conf` with `enable_guc=3 enable_fbc=1` to offload GPU scheduling and video decode to firmware. Reduces CPU load during video playback on the Ice Lake Iris Plus G7.
+
+### 9. RTC UTC Clock Sync
+Sets the hardware clock to UTC (`timedatectl set-local-rtc 0`) to match macOS, which also uses UTC. Prevents the clock from jumping by several hours each time you switch operating systems.
+
+### 10. Power Profiles Check
 Warns if both TLP and `power-profiles-daemon` are active. Does **not** disable either — this is a manual decision.
 
 ## Files Modified
@@ -73,6 +79,7 @@ Warns if both TLP and `power-profiles-daemon` are active. Does **not** disable e
 | `/etc/tlp.d/10-macbook-air-2020.conf` | TLP power management drop-in |
 | `~/.config/pipewire/pipewire.conf.d/10-t2-macbook-audio.conf` | PipeWire audio buffer config |
 | `/etc/systemd/system/macbook-suspend-fix.service` | Suspend resume fix |
+| `/etc/modprobe.d/i915.conf` | Intel GUC/HUC firmware offloading |
 
 ## Prerequisites
 

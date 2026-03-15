@@ -22,6 +22,7 @@ setup() {
     mock_command powerprofilesctl 0 "balanced"
     mock_command sleep 0
     mock_command findmnt 0 "test-auto-uuid"
+    mock_command timedatectl 0 "no"
 
     # Create kernel cmdline fixture
     echo "quiet nowatchdog splash rw" > "${TEST_TEMP}/etc/kernel/cmdline"
@@ -228,6 +229,48 @@ teardown() {
 
     [ "$status" -eq 0 ]
     [[ "$output" == *"conflict"* ]] || [[ "$output" == *"Recommended"* ]]
+}
+
+# ── configure_i915 ──────────────────────────────────────────────────────────
+
+@test "i915: writes modprobe config with GUC/HUC" {
+    run configure_i915
+
+    [ "$status" -eq 0 ]
+    [ -f "${TEST_TEMP}/etc/modprobe.d/i915.conf" ]
+    grep -q "enable_guc=3" "${TEST_TEMP}/etc/modprobe.d/i915.conf"
+    grep -q "enable_fbc=1" "${TEST_TEMP}/etc/modprobe.d/i915.conf"
+}
+
+@test "i915: skips if config already exists" {
+    mkdir -p "${TEST_TEMP}/etc/modprobe.d"
+    echo "options i915 enable_guc=3" > "${TEST_TEMP}/etc/modprobe.d/i915.conf"
+
+    run configure_i915
+
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"already exists"* ]]
+}
+
+# ── configure_rtc ──────────────────────────────────────────────────────────
+
+@test "rtc: sets UTC for macOS dual-boot" {
+    mock_command timedatectl 0 "yes"
+
+    run configure_rtc
+
+    [ "$status" -eq 0 ]
+    assert_mock_called "timedatectl"
+    [[ "$output" == *"UTC"* ]]
+}
+
+@test "rtc: skips when already set to UTC" {
+    mock_command timedatectl 0 "no"
+
+    run configure_rtc
+
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"already set to UTC"* ]]
 }
 
 # ── install_recommended_packages ─────────────────────────────────────────────

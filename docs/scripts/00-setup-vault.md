@@ -31,6 +31,7 @@ The script is interactive — it prompts for vault size and LUKS passphrase.
 5. **BTRFS formatting** — creates a BTRFS filesystem labelled `CODE_REPOS` inside the encrypted container
 6. **Mount and own** — mounts at `~/Code` and sets ownership to the current user
 7. **Verification** — confirms the mount succeeded and displays LUKS container details
+8. **LUKS Header Backup** — backs up the LUKS2 header to `~/.vault.img.header.bak` for disaster recovery
 
 ## LUKS2 Parameters
 
@@ -48,6 +49,7 @@ The script is interactive — it prompts for vault size and LUKS passphrase.
 |---|---|
 | `~/.vault.img` | Encrypted container image (created) |
 | `~/Code` | Mount point directory (created) |
+| `~/.vault.img.header.bak` | LUKS2 header backup (created) |
 
 ## Prerequisites
 
