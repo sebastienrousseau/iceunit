@@ -94,6 +94,6 @@ teardown() {
 # ── No emoji in output ───────────────────────────────────────────────────────
 
 @test "unmount vault: no emoji in output" {
-    run grep -cP '[\x{1F300}-\x{1F9FF}]' "$SCRIPTS_DIR/06-unmount-vault.sh"
-    [ "$output" = "0" ]
+    count=$(perl -CSD -ne '$n++ if /[\x{1F300}-\x{1F9FF}]/; END { print $n // 0 }' "$SCRIPTS_DIR/06-unmount-vault.sh")
+    [ "$count" = "0" ]
 }

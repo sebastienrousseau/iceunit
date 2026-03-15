@@ -178,6 +178,6 @@ teardown() {
 }
 
 @test "wifi firmware: no emoji in output" {
-    run grep -cP '[\x{1F300}-\x{1F9FF}]' "$SCRIPTS_DIR/02-wifi-firmware.sh"
-    [ "$output" = "0" ]
+    count=$(perl -CSD -ne '$n++ if /[\x{1F300}-\x{1F9FF}]/; END { print $n // 0 }' "$SCRIPTS_DIR/02-wifi-firmware.sh")
+    [ "$count" = "0" ]
 }

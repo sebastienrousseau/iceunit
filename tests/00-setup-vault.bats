@@ -140,6 +140,7 @@ teardown() {
 @test "create_image: errors when both methods fail" {
     mock_command fallocate 1
     mock_command dd 1
+    mock_command numfmt 0 "62914560000"
     VAULT_SIZE="60G"
     VAULT_IMG="$TEST_HOME/.vault.img"
     run create_image
@@ -212,8 +213,8 @@ teardown() {
 }
 
 @test "setup vault: no emoji in output" {
-    run grep -cP '[\x{1F300}-\x{1F9FF}]' "$SCRIPTS_DIR/00-setup-vault.sh"
-    [ "$output" = "0" ]
+    count=$(perl -CSD -ne '$n++ if /[\x{1F300}-\x{1F9FF}]/; END { print $n // 0 }' "$SCRIPTS_DIR/00-setup-vault.sh")
+    [ "$count" = "0" ]
 }
 
 @test "setup vault: no mount|grep pattern" {

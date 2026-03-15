@@ -49,7 +49,7 @@ run_test "00-system-init: --dry-run" \
     bash scripts/00-system-init.sh --dry-run
 
 run_test "01-thermal-setup: --dry-run" \
-    bash scripts/01-thermal-setup.sh --dry-run
+    sudo bash scripts/01-thermal-setup.sh --dry-run
 
 run_test "03-optimise: --dry-run" \
     bash scripts/03-optimise.sh --dry-run
