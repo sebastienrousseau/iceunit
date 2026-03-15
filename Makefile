@@ -1,6 +1,7 @@
 .PHONY: help install bootstrap lint test test-go test-docker test-integration \
        test-all verify docs docs-build docs-preview clean \
-       init vault thermal wifi optimise bootloader mount unmount apps
+       init vault thermal wifi optimise bootloader mount unmount apps \
+       ai-dev gnome-tweaks devops security dotfiles
 
 SHELL := /bin/bash
 
@@ -53,6 +54,23 @@ unmount: ## Lock and unmount code vault (06-unmount-vault.sh)
 
 apps: ## Standard application suite (07-install-apps.sh)
 	bash scripts/07-install-apps.sh $(FLAGS)
+
+# ── Workstation (run individually, supports DRY_RUN=1) ───────────────────────
+
+ai-dev: ## AI/LLM & developer stack (00-ai-dev-workstation.sh)
+	sudo bash workstation/00-ai-dev-workstation.sh $(FLAGS)
+
+gnome-tweaks: ## GNOME productivity tweaks (10-gnome-productivity.sh)
+	bash workstation/10-gnome-productivity.sh $(FLAGS)
+
+devops: ## DevOps & cloud-native tools (20-devops-tools.sh)
+	sudo bash workstation/20-devops-tools.sh $(FLAGS)
+
+security: ## Firewall & secrets hardening (30-security-tools.sh)
+	sudo bash workstation/30-security-tools.sh $(FLAGS)
+
+dotfiles: ## Link dotfiles symlinks (40-dotfiles-link.sh)
+	bash workstation/40-dotfiles-link.sh $(FLAGS)
 
 # ── Lint ─────────────────────────────────────────────────────────────────────
 

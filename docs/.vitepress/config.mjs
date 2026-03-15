@@ -326,6 +326,13 @@ export default defineConfig({
     // Parse changelog entries
     const changelogEntries = [
       {
+        title: 'v1.1.0 — March 2026',
+        date: new Date('2026-03-08'),
+        description:
+          'Added --dry-run and --help flags, 148 unit tests, Docker-based CI, and security hardening.',
+        link: `${SITE_URL}/changelog`,
+      },
+      {
         title: 'v1.0.0 — March 2026',
         date: new Date('2026-03-01'),
         description:

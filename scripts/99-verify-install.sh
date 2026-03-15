@@ -4,6 +4,15 @@
 # Clean, professional audit script matching the Iceunit (ICU) design.
 # =============================================================================
 
+# Handle --help before strict mode
+for arg in "$@"; do
+    [[ "$arg" == "--help" || "$arg" == "-h" ]] && {
+        echo "Usage: bash $0 [--help]"
+        echo "Verify the health of the entire Iceunit installation."
+        exit 0
+    }
+done
+
 # NOTE: -e is intentionally omitted — the check() function uses eval in
 # conditionals that return non-zero for missing/inactive items. With -e
 # the script would exit on the first failing check instead of reporting all.

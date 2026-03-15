@@ -44,4 +44,8 @@ The vault scripts (`00-setup-vault.sh`, `05-mount-vault.sh`, `06-unmount-vault.s
 
 ## Supported Versions
 
-Only the latest version on the `main` branch is supported. There are no versioned releases.
+Only the latest version on the `main` branch is supported. See the [changelog](/changelog) for release history.
+
+### Dotfiles Bootstrap
+
+`bootstrap-dotfiles.sh` clones and executes the `install.sh` from a remote dotfiles repository (`DOTFILES_REPO_URL`). The target repo is user-configurable and its contents are executed without signature or checksum verification. Only use trusted repositories.

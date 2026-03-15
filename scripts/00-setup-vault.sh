@@ -24,6 +24,11 @@ ASSUME_YES=false
 for arg in "$@"; do
     [[ "$arg" == "--dry-run" ]] && DRY_RUN=true
     [[ "$arg" == "--yes" ]] && ASSUME_YES=true
+    [[ "$arg" == "--help" || "$arg" == "-h" ]] && {
+        echo "Usage: bash $0 [--dry-run] [--yes] [--help]"
+        echo "Create a LUKS2 encrypted BTRFS vault at ~/.vault.img."
+        exit 0
+    }
 done
 
 # Wrapper for destructive commands

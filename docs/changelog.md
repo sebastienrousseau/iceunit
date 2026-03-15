@@ -7,9 +7,9 @@ description: Release history and known issues for CachyOS MacBook Air 2020 scrip
 ## v1.1.0 — March 2026
 
 ### Added
-- `--dry-run` flag on all 7 scripts — preview actions without modifying the system
-- `--help` flag on all 7 scripts — display usage information
-- 136 unit tests using bats-core with full mock framework (`tests/*.bats`)
+- `--dry-run` flag on all scripts — preview actions without modifying the system
+- `--help` flag on all scripts — display usage information
+- 148 unit tests using bats-core with full mock framework (`tests/*.bats`)
 - Docker-based unit test container (`tests/Dockerfile.unit`) on Arch Linux
 - Docker-based integration test container (`tests/Dockerfile.integration`) on Arch Linux with real packages
 - Consolidated CI workflow (`.github/workflows/tests.yml`) with ShellCheck, unit tests, and integration tests

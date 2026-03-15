@@ -7,6 +7,11 @@ for arg in "$@"; do
     [[ "$arg" == "--dry-run" ]] && DRY_RUN=true
     # shellcheck disable=SC2034
     [[ "$arg" == "--yes" ]] && ASSUME_YES=true
+    [[ "$arg" == "--help" || "$arg" == "-h" ]] && {
+        echo "Usage: sudo bash $0 [--dry-run] [--yes] [--help]"
+        echo "Install all Iceunit core packages via pacman."
+        exit 0
+    }
 done
 
 # Wrapper for destructive commands

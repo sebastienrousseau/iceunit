@@ -19,6 +19,11 @@ ASSUME_YES=false
 for arg in "$@"; do
     [[ "$arg" == "--dry-run" ]] && DRY_RUN=true
     [[ "$arg" == "--yes" ]] && ASSUME_YES=true
+    [[ "$arg" == "--help" || "$arg" == "-h" ]] && {
+        echo "Usage: sudo bash $0 [--dry-run] [--yes] [--audio-only] [--help]"
+        echo "Apply post-install system optimisations for MacBook Air 2020."
+        exit 0
+    }
 done
 
 # Wrapper for destructive commands

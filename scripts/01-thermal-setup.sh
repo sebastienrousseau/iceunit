@@ -16,7 +16,14 @@
 set -euo pipefail
 
 DRY_RUN=false
-for arg in "$@"; do [[ "$arg" == "--dry-run" ]] && DRY_RUN=true; done
+for arg in "$@"; do
+    [[ "$arg" == "--dry-run" ]] && DRY_RUN=true
+    [[ "$arg" == "--help" || "$arg" == "-h" ]] && {
+        echo "Usage: sudo bash $0 [--dry-run] [--help]"
+        echo "Install and configure mbpfan for MacBook Air 2020 thermal control."
+        exit 0
+    }
+done
 
 # Wrapper for destructive commands
 dryrun() {
