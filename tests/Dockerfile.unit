@@ -1,4 +1,4 @@
-FROM archlinux:latest
+FROM --platform=linux/amd64 archlinux:latest
 
 RUN pacman -Sy --noconfirm bash coreutils findutils grep sed gawk \
     && pacman -S --noconfirm git \

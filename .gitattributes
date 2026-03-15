@@ -1,0 +1,27 @@
+# Enforce Unix line endings for all text files
+* text=auto eol=lf
+
+# Shell scripts — always LF, always text
+*.sh text eol=lf
+mise-plugins/*/bin/* text eol=lf
+
+# Configuration
+*.yml text eol=lf
+*.yaml text eol=lf
+*.json text eol=lf
+*.toml text eol=lf
+*.conf text eol=lf
+
+# Documentation
+*.md text eol=lf
+
+# Dockerfiles
+Dockerfile* text eol=lf
+
+# Makefile
+Makefile text eol=lf
+
+# Binaries — do not diff
+*.png binary
+*.svg binary
+*.ico binary
