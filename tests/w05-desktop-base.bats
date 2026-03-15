@@ -10,7 +10,7 @@ setup() {
     # Mock commands that require hardware/root/packages
     mock_command pacman 0
     mock_command systemctl 0
-    mock_command gdm 0
+    mock_command xdg-user-dirs-update 0
 }
 
 teardown() {
@@ -58,15 +58,45 @@ teardown() {
     [[ "$output" == *"Installing NetworkManager"* ]]
 }
 
+# ── setup_audio ──────────────────────────────────────────────────────────────
+
+@test "audio: skips when PipeWire already installed" {
+    mock_command pacman 0
+
+    run setup_audio
+
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"already installed"* ]]
+}
+
+@test "audio: installs missing PipeWire packages" {
+    mock_command_conditional pacman "pipewire-pulse" 1 0
+
+    run setup_audio
+
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"Installing PipeWire"* ]]
+}
+
 # ── setup_xdg_dirs ───────────────────────────────────────────────────────────
 
-@test "xdg dirs: skips when already installed" {
+@test "xdg dirs: skips install when already present" {
     mock_command pacman 0
 
     run setup_xdg_dirs
 
     [ "$status" -eq 0 ]
     [[ "$output" == *"already installed"* ]]
+}
+
+@test "xdg dirs: runs xdg-user-dirs-update for real user" {
+    mock_command pacman 0
+    export SUDO_USER="testuser"
+
+    run setup_xdg_dirs
+
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"Initialising XDG directories"* ]]
 }
 
 @test "xdg dirs: installs when missing" {
@@ -102,7 +132,7 @@ teardown() {
 
 @test "fwupd: skips when already installed and enabled" {
     mock_command pacman 0
-    mock_command_conditional systemctl "is-enabled fwupd" 0 0
+    mock_command_conditional systemctl "is-enabled fwupd.service" 0 0
 
     run setup_fwupd
 
@@ -213,18 +243,9 @@ teardown() {
 }
 
 @test "gdm: skips when not installed" {
-    rm -f "${MOCK_BIN}/gdm"
-    ln -sf /usr/bin/bash "${MOCK_BIN}/bash"
     mock_command_conditional pacman "gdm" 1 0
 
-    run bash -c "
-        export PATH='${MOCK_BIN}'
-        export HOME='${HOME}'
-        export MOCK_CALLS='${MOCK_CALLS}'
-        export TEST_TEMP='${TEST_TEMP}'
-        source '${SOURCEABLE_SCRIPT}'
-        enable_gdm
-    "
+    run enable_gdm
 
     [ "$status" -eq 0 ]
     [[ "$output" == *"not installed"* ]] || [[ "$output" == *"skipped"* ]]

@@ -23,14 +23,15 @@ sudo bash workstation/05-desktop-base.sh [--dry-run] [--help]
 
 1. **Desktop Environment** — installs `gnome` and `gdm` if not already present.
 2. **NetworkManager** — installs and enables `NetworkManager` for network connectivity.
-3. **XDG User Directories** — installs `xdg-user-dirs` for standard user folder structure.
-4. **Fonts** — installs `noto-fonts`, `noto-fonts-emoji`, `ttf-dejavu`, and `ttf-liberation`.
-5. **Firmware Updates** — installs and enables `fwupd` for firmware update management.
-6. **CPU Microcode** — installs `intel-ucode` for Intel Ice Lake microcode updates.
-7. **Maintenance Utilities** — installs `pacman-contrib` (provides `paccache` and `checkupdates`).
-8. **System Timers** — enables `fstrim.timer` (periodic SSD TRIM) and `paccache.timer` (weekly cache cleanup).
-9. **Bluetooth Service** — installs `bluez`/`bluez-utils` and enables `bluetooth.service`.
-10. **Display Manager** — enables `gdm` to start on boot.
+3. **Audio Stack (PipeWire)** — installs `pipewire`, `pipewire-pulse`, and `wireplumber` for modern GNOME audio.
+4. **XDG User Directories** — installs `xdg-user-dirs` and runs `xdg-user-dirs-update` to create standard folders.
+5. **Fonts** — installs `noto-fonts`, `noto-fonts-emoji`, `ttf-dejavu`, and `ttf-liberation`.
+6. **Firmware Updates** — installs and enables `fwupd.service` for firmware update management.
+7. **CPU Microcode** — installs `intel-ucode` for Intel Ice Lake microcode updates.
+8. **Maintenance Utilities** — installs `pacman-contrib` (provides `paccache` and `checkupdates`).
+9. **System Timers** — enables `fstrim.timer` (periodic SSD TRIM) and `paccache.timer` (weekly cache cleanup).
+10. **Bluetooth Service** — installs `bluez`/`bluez-utils` and enables `bluetooth.service`.
+11. **Display Manager** — enables `gdm` to start on boot.
 
 ## Prerequisites
 

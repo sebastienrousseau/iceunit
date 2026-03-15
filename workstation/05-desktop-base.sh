@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # =============================================================================
-# 09-desktop-base.sh
+# 05-desktop-base.sh
 # Desktop Foundation for MacBook Air 2020 (MacBookAir9,1) on CachyOS
 #
 # Problem: The core hardware scripts (00–08) assume a working GNOME
@@ -109,7 +109,32 @@ setup_networkmanager() {
     fi
 }
 
-# ── 3. XDG User Directories ─────────────────────────────────────────────────
+# ── 3. Audio Stack (PipeWire) ────────────────────────────────────────────────
+setup_audio() {
+    header "Audio Stack (PipeWire)"
+
+    local audio_pkgs=(pipewire pipewire-pulse wireplumber)
+    local missing=()
+
+    for pkg in "${audio_pkgs[@]}"; do
+        if ! pacman -Qq "$pkg" >/dev/null 2>&1; then
+            missing+=("$pkg")
+        fi
+    done
+
+    if [[ ${#missing[@]} -eq 0 ]]; then
+        success "PipeWire audio stack already installed"
+        mark_skipped "pipewire"
+        return
+    fi
+
+    info "Installing PipeWire audio stack: ${missing[*]}"
+    dryrun pacman -S --needed --noconfirm "${missing[@]}"
+    success "PipeWire installed"
+    mark_applied "pipewire"
+}
+
+# ── 4. XDG User Directories ─────────────────────────────────────────────────
 setup_xdg_dirs() {
     header "XDG User Directories"
 
@@ -119,11 +144,17 @@ setup_xdg_dirs() {
         mark_applied "xdg-user-dirs"
     else
         success "xdg-user-dirs already installed"
-        mark_skipped "xdg-user-dirs"
+    fi
+
+    # Create standard user directories
+    if [[ -n "${SUDO_USER:-}" ]]; then
+        info "Initialising XDG directories for ${SUDO_USER}..."
+        dryrun sudo -u "$SUDO_USER" xdg-user-dirs-update
+        mark_applied "xdg-dirs-init"
     fi
 }
 
-# ── 4. Fonts ─────────────────────────────────────────────────────────────────
+# ── 5. Fonts ─────────────────────────────────────────────────────────────────
 install_fonts() {
     header "Fonts"
 
@@ -148,7 +179,7 @@ install_fonts() {
     mark_applied "fonts"
 }
 
-# ── 5. Firmware Update Daemon ────────────────────────────────────────────────
+# ── 6. Firmware Update Daemon ────────────────────────────────────────────────
 setup_fwupd() {
     header "Firmware Updates (fwupd)"
 
@@ -160,18 +191,18 @@ setup_fwupd() {
         success "fwupd already installed"
     fi
 
-    if systemctl is-enabled fwupd >/dev/null 2>&1; then
-        success "fwupd service already enabled"
+    if systemctl is-enabled fwupd.service >/dev/null 2>&1; then
+        success "fwupd.service already enabled"
         mark_skipped "fwupd-enable"
     else
-        info "Enabling fwupd..."
-        dryrun systemctl enable fwupd
-        success "fwupd enabled"
+        info "Enabling fwupd.service..."
+        dryrun systemctl enable --now fwupd.service
+        success "fwupd.service enabled"
         mark_applied "fwupd-enable"
     fi
 }
 
-# ── 6. CPU Microcode ─────────────────────────────────────────────────────────
+# ── 7. CPU Microcode ─────────────────────────────────────────────────────────
 install_microcode() {
     header "CPU Microcode"
 
@@ -188,7 +219,7 @@ install_microcode() {
     mark_applied "microcode"
 }
 
-# ── 7. Maintenance Utilities ─────────────────────────────────────────────────
+# ── 8. Maintenance Utilities ─────────────────────────────────────────────────
 setup_maintenance_utils() {
     header "Maintenance Utilities"
 
@@ -201,7 +232,7 @@ setup_maintenance_utils() {
     fi
 }
 
-# ── 8. System Timers ─────────────────────────────────────────────────────────
+# ── 9. System Timers ─────────────────────────────────────────────────────────
 enable_timers() {
     header "System Timers"
 
@@ -221,7 +252,7 @@ enable_timers() {
         success "paccache.timer already enabled"
         mark_skipped "paccache-timer"
     else
-        if systemctl list-unit-files paccache.timer >/dev/null 2>&1; then
+        if systemctl list-unit-files | grep -q "^paccache.timer"; then
             info "Enabling paccache.timer for weekly cache cleanup..."
             dryrun systemctl enable --now paccache.timer
             success "paccache.timer enabled"
@@ -233,11 +264,11 @@ enable_timers() {
     fi
 }
 
-# ── 9. Bluetooth Service ─────────────────────────────────────────────────────
+# ── 10. Bluetooth Service ────────────────────────────────────────────────────
 enable_bluetooth() {
     header "Bluetooth Service"
 
-    if ! pacman -Qq bluez bluez-utils >/dev/null 2>&1; then
+    if ! pacman -Qq bluez >/dev/null 2>&1 || ! pacman -Qq bluez-utils >/dev/null 2>&1; then
         info "Installing bluez and bluez-utils..."
         dryrun pacman -S --needed --noconfirm bluez bluez-utils
         mark_applied "bluetooth-install"
@@ -256,11 +287,11 @@ enable_bluetooth() {
     fi
 }
 
-# ── 10. GDM Enablement ───────────────────────────────────────────────────────
+# ── 11. GDM Enablement ───────────────────────────────────────────────────────
 enable_gdm() {
     header "Display Manager"
 
-    if ! command -v gdm >/dev/null 2>&1 && ! pacman -Qq gdm >/dev/null 2>&1; then
+    if ! pacman -Qq gdm >/dev/null 2>&1; then
         skip "GDM not installed — install desktop environment first"
         mark_skipped "gdm-enable"
         return
@@ -305,6 +336,7 @@ case "${1:-}" in
         require_root
         install_desktop
         setup_networkmanager
+        setup_audio
         setup_xdg_dirs
         install_fonts
         setup_fwupd
