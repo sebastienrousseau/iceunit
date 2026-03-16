@@ -20,28 +20,18 @@ teardown() {
 # ── install_desktop ──────────────────────────────────────────────────────────
 
 @test "desktop: skips when gnome and gdm installed" {
-    mock_command pacman 0
-
-    run install_desktop
-
-    [ "$status" -eq 0 ]
-    [[ "$output" == *"already installed"* ]]
+    assert_package_skip install_desktop "already installed"
 }
 
 @test "desktop: installs missing packages" {
-    mock_command_conditional pacman "gnome" 1 0
-
-    run install_desktop
-
-    [ "$status" -eq 0 ]
-    assert_mock_called "pacman"
+    assert_package_install install_desktop gnome
 }
 
 # ── setup_networkmanager ─────────────────────────────────────────────────────
 
 @test "networkmanager: skips when already installed and enabled" {
     mock_command pacman 0
-    mock_command_conditional systemctl "is-enabled NetworkManager" 0 0
+    mock_service_enabled NetworkManager
 
     run setup_networkmanager
 
@@ -50,7 +40,7 @@ teardown() {
 }
 
 @test "networkmanager: installs when missing" {
-    mock_command_conditional pacman "networkmanager" 1 0
+    mock_package_missing networkmanager
 
     run setup_networkmanager
 
@@ -61,16 +51,11 @@ teardown() {
 # ── setup_audio ──────────────────────────────────────────────────────────────
 
 @test "audio: skips when PipeWire already installed" {
-    mock_command pacman 0
-
-    run setup_audio
-
-    [ "$status" -eq 0 ]
-    [[ "$output" == *"already installed"* ]]
+    assert_package_skip setup_audio "already installed"
 }
 
 @test "audio: installs missing PipeWire packages" {
-    mock_command_conditional pacman "pipewire-pulse" 1 0
+    mock_package_missing pipewire-pulse
 
     run setup_audio
 
@@ -81,12 +66,7 @@ teardown() {
 # ── setup_xdg_dirs ───────────────────────────────────────────────────────────
 
 @test "xdg dirs: skips install when already present" {
-    mock_command pacman 0
-
-    run setup_xdg_dirs
-
-    [ "$status" -eq 0 ]
-    [[ "$output" == *"already installed"* ]]
+    assert_package_skip setup_xdg_dirs "already installed"
 }
 
 @test "xdg dirs: runs xdg-user-dirs-update for real user" {
@@ -100,7 +80,7 @@ teardown() {
 }
 
 @test "xdg dirs: installs when missing" {
-    mock_command_conditional pacman "xdg-user-dirs" 1 0
+    mock_package_missing xdg-user-dirs
 
     run setup_xdg_dirs
 
@@ -111,28 +91,18 @@ teardown() {
 # ── install_fonts ────────────────────────────────────────────────────────────
 
 @test "fonts: skips when all present" {
-    mock_command pacman 0
-
-    run install_fonts
-
-    [ "$status" -eq 0 ]
-    [[ "$output" == *"already installed"* ]]
+    assert_package_skip install_fonts "already installed"
 }
 
 @test "fonts: installs missing font packages" {
-    mock_command_conditional pacman "noto-fonts-emoji" 1 0
-
-    run install_fonts
-
-    [ "$status" -eq 0 ]
-    assert_mock_called "pacman"
+    assert_package_install install_fonts noto-fonts-emoji
 }
 
 # ── setup_fwupd ──────────────────────────────────────────────────────────────
 
 @test "fwupd: skips when already installed and enabled" {
     mock_command pacman 0
-    mock_command_conditional systemctl "is-enabled fwupd.service" 0 0
+    mock_service_enabled fwupd.service
 
     run setup_fwupd
 
@@ -141,7 +111,7 @@ teardown() {
 }
 
 @test "fwupd: installs when missing" {
-    mock_command_conditional pacman "fwupd" 1 0
+    mock_package_missing fwupd
 
     run setup_fwupd
 
@@ -152,16 +122,11 @@ teardown() {
 # ── install_microcode ────────────────────────────────────────────────────────
 
 @test "microcode: skips when already installed" {
-    mock_command pacman 0
-
-    run install_microcode
-
-    [ "$status" -eq 0 ]
-    [[ "$output" == *"already installed"* ]]
+    assert_package_skip install_microcode "already installed"
 }
 
 @test "microcode: installs intel-ucode when missing" {
-    mock_command_conditional pacman "intel-ucode" 1 0
+    mock_package_missing intel-ucode
 
     run install_microcode
 
@@ -172,16 +137,11 @@ teardown() {
 # ── setup_maintenance_utils ──────────────────────────────────────────────────
 
 @test "maintenance utils: skips when pacman-contrib installed" {
-    mock_command pacman 0
-
-    run setup_maintenance_utils
-
-    [ "$status" -eq 0 ]
-    [[ "$output" == *"already installed"* ]]
+    assert_package_skip setup_maintenance_utils "already installed"
 }
 
 @test "maintenance utils: installs pacman-contrib when missing" {
-    mock_command_conditional pacman "pacman-contrib" 1 0
+    mock_package_missing pacman-contrib
 
     run setup_maintenance_utils
 
@@ -192,28 +152,18 @@ teardown() {
 # ── enable_timers ────────────────────────────────────────────────────────────
 
 @test "timers: skips fstrim.timer when already enabled" {
-    mock_command_conditional systemctl "is-enabled fstrim.timer" 0 0
-
-    run enable_timers
-
-    [ "$status" -eq 0 ]
-    [[ "$output" == *"fstrim.timer already enabled"* ]]
+    assert_service_skip_when_enabled enable_timers fstrim.timer "fstrim.timer already enabled"
 }
 
 @test "timers: enables fstrim.timer when not enabled" {
-    mock_command_conditional systemctl "is-enabled fstrim.timer" 1 0
-
-    run enable_timers
-
-    [ "$status" -eq 0 ]
-    [[ "$output" == *"Enabling fstrim.timer"* ]]
+    assert_service_enables_when_disabled enable_timers fstrim.timer "Enabling fstrim.timer"
 }
 
 # ── enable_bluetooth ─────────────────────────────────────────────────────────
 
 @test "bluetooth: skips when already installed and enabled" {
     mock_command pacman 0
-    mock_command_conditional systemctl "is-enabled bluetooth" 0 0
+    mock_service_enabled bluetooth
 
     run enable_bluetooth
 
@@ -222,7 +172,7 @@ teardown() {
 }
 
 @test "bluetooth: installs bluez when missing" {
-    mock_command_conditional pacman "bluez" 1 0
+    mock_package_missing bluez
 
     run enable_bluetooth
 
@@ -234,7 +184,7 @@ teardown() {
 
 @test "gdm: skips when already enabled" {
     mock_command pacman 0
-    mock_command_conditional systemctl "is-enabled gdm" 0 0
+    mock_service_enabled gdm
 
     run enable_gdm
 
@@ -243,7 +193,7 @@ teardown() {
 }
 
 @test "gdm: skips when not installed" {
-    mock_command_conditional pacman "gdm" 1 0
+    mock_package_missing gdm
 
     run enable_gdm
 
@@ -254,47 +204,28 @@ teardown() {
 # ── print_summary ────────────────────────────────────────────────────────────
 
 @test "summary: shows applied items" {
-    APPLIED=("fonts" "microcode")
-    SKIPPED=("desktop-environment")
-
-    run print_summary
-
-    [ "$status" -eq 0 ]
-    [[ "$output" == *"fonts"* ]]
-    [[ "$output" == *"desktop-environment"* ]]
-    [[ "$output" == *"complete"* ]]
+    assert_summary_shows_items "fonts,microcode" "desktop-environment"
 }
 
 # ── dry-run end-to-end ───────────────────────────────────────────────────────
 
 @test "desktop-base: runs in dry-run mode without error" {
     prepare_runnable_script "$WORKSTATION_DIR/05-desktop-base.sh"
-    # Mock pacman to fail so packages appear missing and DRY-RUN output shows
     mock_command pacman 1
-
-    run bash "$RUNNABLE_SCRIPT" --dry-run
-
-    [ "$status" -eq 0 ]
-    [[ "$output" == *"DRY-RUN"* ]]
+    assert_dry_run_succeeds
 }
 
 @test "desktop-base: --help shows usage" {
     prepare_runnable_script "$WORKSTATION_DIR/05-desktop-base.sh"
-
-    run bash "$RUNNABLE_SCRIPT" --help
-
-    [ "$status" -eq 0 ]
-    [[ "$output" == *"Usage"* ]]
+    assert_help_shows_usage
 }
 
 # ── shebang and standards ───────────────────────────────────────────────────
 
 @test "desktop-base: uses #!/usr/bin/env bash" {
-    run head -1 "$WORKSTATION_DIR/05-desktop-base.sh"
-    [[ "$output" == "#!/usr/bin/env bash" ]]
+    assert_shebang "$WORKSTATION_DIR/05-desktop-base.sh"
 }
 
 @test "desktop-base: no emoji in output" {
-    count=$(perl -CSD -ne '$n++ if /[\x{1F300}-\x{1F9FF}]/; END { print $n // 0 }' "$WORKSTATION_DIR/05-desktop-base.sh")
-    [ "$count" = "0" ]
+    assert_no_emoji "$WORKSTATION_DIR/05-desktop-base.sh"
 }

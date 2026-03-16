@@ -86,23 +86,11 @@ teardown() {
 # ── print_summary ─────────────────────────────────────────────────────────────
 
 @test "summary: displays applied and skipped items" {
-    APPLIED=("ssd-trim" "journal-vacuum")
-    SKIPPED=("package-cache")
-
-    run print_summary
-
-    [ "$status" -eq 0 ]
-    [[ "$output" == *"ssd-trim"* ]]
-    [[ "$output" == *"package-cache"* ]]
+    assert_summary_shows_items "ssd-trim,journal-vacuum" "package-cache"
 }
 
 @test "summary: shows complete message" {
-    APPLIED=("t2-health")
-
-    run print_summary
-
-    [ "$status" -eq 0 ]
-    [[ "$output" == *"complete"* ]]
+    assert_summary_shows_items "t2-health"
 }
 
 # ── t2_health ────────────────────────────────────────────────────────────────
@@ -314,11 +302,9 @@ teardown() {
 # ── shebang and standards ───────────────────────────────────────────────────
 
 @test "maintenance: uses #!/usr/bin/env bash" {
-    run head -1 "$SCRIPTS_DIR/08-maintenance.sh"
-    [[ "$output" == "#!/usr/bin/env bash" ]]
+    assert_shebang "$SCRIPTS_DIR/08-maintenance.sh"
 }
 
 @test "maintenance: no emoji in output" {
-    count=$(perl -CSD -ne '$n++ if /[\x{1F300}-\x{1F9FF}]/; END { print $n // 0 }' "$SCRIPTS_DIR/08-maintenance.sh")
-    [ "$count" = "0" ]
+    assert_no_emoji "$SCRIPTS_DIR/08-maintenance.sh"
 }

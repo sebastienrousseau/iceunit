@@ -203,11 +203,9 @@ teardown() {
 # ── shebang and standards ───────────────────────────────────────────────────
 
 @test "wifi firmware: uses #!/usr/bin/env bash" {
-    run head -1 "$SCRIPTS_DIR/02-wifi-firmware.sh"
-    [[ "$output" == "#!/usr/bin/env bash" ]]
+    assert_shebang "$SCRIPTS_DIR/02-wifi-firmware.sh"
 }
 
 @test "wifi firmware: no emoji in output" {
-    count=$(perl -CSD -ne '$n++ if /[\x{1F300}-\x{1F9FF}]/; END { print $n // 0 }' "$SCRIPTS_DIR/02-wifi-firmware.sh")
-    [ "$count" = "0" ]
+    assert_no_emoji "$SCRIPTS_DIR/02-wifi-firmware.sh"
 }

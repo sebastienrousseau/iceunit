@@ -13,32 +13,30 @@ setup() {
 teardown() { common_teardown; }
 
 @test "security: runs in dry-run mode without error" {
-    run bash "$RUNNABLE_SCRIPT" --dry-run
-    [ "$status" -eq 0 ]
-    [[ "$output" == *"DRY-RUN"* ]]
+    assert_dry_run_succeeds
 }
 
 @test "security: installs security packages via pacman" {
     run bash "$RUNNABLE_SCRIPT" --dry-run
-    [ "$status" -eq 0 ]
-    [[ "$output" == *"pacman"* ]]
-    [[ "$output" == *"gitleaks"* ]]
+    then_status_ok
+    then_output_contains "pacman"
+    then_output_contains "gitleaks"
 }
 
 @test "security: enables ufw firewall" {
     run bash "$RUNNABLE_SCRIPT" --dry-run
-    [ "$status" -eq 0 ]
-    [[ "$output" == *"ufw"* ]]
+    then_status_ok
+    then_output_contains "ufw"
 }
 
 @test "security: sets default deny incoming" {
     run bash "$RUNNABLE_SCRIPT" --dry-run
-    [ "$status" -eq 0 ]
-    [[ "$output" == *"deny incoming"* ]]
+    then_status_ok
+    then_output_contains "deny incoming"
 }
 
 @test "security: sets default allow outgoing" {
     run bash "$RUNNABLE_SCRIPT" --dry-run
-    [ "$status" -eq 0 ]
-    [[ "$output" == *"allow outgoing"* ]]
+    then_status_ok
+    then_output_contains "allow outgoing"
 }

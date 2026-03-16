@@ -87,13 +87,9 @@ teardown() {
 # ── Uses env bash shebang ────────────────────────────────────────────────────
 
 @test "unmount vault: uses #!/usr/bin/env bash shebang" {
-    run head -1 "$SCRIPTS_DIR/06-unmount-vault.sh"
-    [[ "$output" == "#!/usr/bin/env bash" ]]
+    assert_shebang "$SCRIPTS_DIR/06-unmount-vault.sh"
 }
 
-# ── No emoji in output ───────────────────────────────────────────────────────
-
 @test "unmount vault: no emoji in output" {
-    count=$(perl -CSD -ne '$n++ if /[\x{1F300}-\x{1F9FF}]/; END { print $n // 0 }' "$SCRIPTS_DIR/06-unmount-vault.sh")
-    [ "$count" = "0" ]
+    assert_no_emoji "$SCRIPTS_DIR/06-unmount-vault.sh"
 }

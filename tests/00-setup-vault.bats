@@ -219,13 +219,11 @@ teardown() {
 # ── shebang and standards ───────────────────────────────────────────────────
 
 @test "setup vault: uses #!/usr/bin/env bash" {
-    run head -1 "$SCRIPTS_DIR/00-setup-vault.sh"
-    [[ "$output" == "#!/usr/bin/env bash" ]]
+    assert_shebang "$SCRIPTS_DIR/00-setup-vault.sh"
 }
 
 @test "setup vault: no emoji in output" {
-    count=$(perl -CSD -ne '$n++ if /[\x{1F300}-\x{1F9FF}]/; END { print $n // 0 }' "$SCRIPTS_DIR/00-setup-vault.sh")
-    [ "$count" = "0" ]
+    assert_no_emoji "$SCRIPTS_DIR/00-setup-vault.sh"
 }
 
 @test "setup vault: no mount|grep pattern" {

@@ -115,5 +115,5 @@ teardown() { common_teardown; }
 }
 
 @test "mise-plugins: uses #!/usr/bin/env bash" {
-    head -1 "${WORKSTATION_DIR}/50-mise-plugins.sh" | grep -q '#!/usr/bin/env bash'
+    assert_shebang "${WORKSTATION_DIR}/50-mise-plugins.sh"
 }

@@ -2,36 +2,6 @@
 
 load test_helper
 
-# ── Helpers ──────────────────────────────────────────────────────────────────
-
-mock_uname() {
-    local os_name="$1"
-    local arch_name="$2"
-    cat > "${MOCK_BIN}/uname" << ENDMOCK
-#!/usr/bin/env bash
-case "\$1" in
-    -s) echo "${os_name}" ;;
-    -m) echo "${arch_name}" ;;
-    *) /usr/bin/uname "\$@" ;;
-esac
-ENDMOCK
-    chmod +x "${MOCK_BIN}/uname"
-}
-
-mock_curl_download() {
-    cat > "${MOCK_BIN}/curl" << 'ENDMOCK'
-#!/usr/bin/env bash
-echo "$*" >> "${MOCK_CALLS}/curl"
-while [[ $# -gt 0 ]]; do
-    case "$1" in
-        -o) touch "$2"; shift ;;
-    esac
-    shift
-done
-ENDMOCK
-    chmod +x "${MOCK_BIN}/curl"
-}
-
 setup() {
     common_setup
     PLUGIN_DIR="${REPO_ROOT}/mise-plugins/ollama/bin"
@@ -87,20 +57,12 @@ teardown() { common_teardown; }
 
 # ── download ─────────────────────────────────────────────────────────────────
 
-@test "ollama download: errors when ASDF_INSTALL_VERSION unset" {
-    unset ASDF_INSTALL_VERSION
-    export ASDF_DOWNLOAD_PATH="${TEST_TEMP}/download"
-
-    run bash "${PLUGIN_DIR}/download"
-    [ "$status" -ne 0 ]
+@test "ollama download: errors without ASDF_INSTALL_VERSION" {
+    assert_asdf_env_required "${PLUGIN_DIR}/download" ASDF_INSTALL_VERSION
 }
 
-@test "ollama download: errors when ASDF_DOWNLOAD_PATH unset" {
-    export ASDF_INSTALL_VERSION="0.5.0"
-    unset ASDF_DOWNLOAD_PATH
-
-    run bash "${PLUGIN_DIR}/download"
-    [ "$status" -ne 0 ]
+@test "ollama download: errors without ASDF_DOWNLOAD_PATH" {
+    assert_asdf_env_required "${PLUGIN_DIR}/download" ASDF_DOWNLOAD_PATH
 }
 
 @test "ollama download: downloads Linux amd64 archive" {
@@ -150,31 +112,16 @@ teardown() { common_teardown; }
 
 # ── install ──────────────────────────────────────────────────────────────────
 
-@test "ollama install: errors when ASDF_INSTALL_VERSION unset" {
-    unset ASDF_INSTALL_VERSION
-    export ASDF_INSTALL_PATH="${TEST_TEMP}/install"
-    export ASDF_DOWNLOAD_PATH="${TEST_TEMP}/download"
-
-    run bash "${PLUGIN_DIR}/install"
-    [ "$status" -ne 0 ]
+@test "ollama install: errors without ASDF_INSTALL_VERSION" {
+    assert_asdf_env_required "${PLUGIN_DIR}/install" ASDF_INSTALL_VERSION
 }
 
-@test "ollama install: errors when ASDF_INSTALL_PATH unset" {
-    export ASDF_INSTALL_VERSION="0.5.0"
-    unset ASDF_INSTALL_PATH
-    export ASDF_DOWNLOAD_PATH="${TEST_TEMP}/download"
-
-    run bash "${PLUGIN_DIR}/install"
-    [ "$status" -ne 0 ]
+@test "ollama install: errors without ASDF_INSTALL_PATH" {
+    assert_asdf_env_required "${PLUGIN_DIR}/install" ASDF_INSTALL_PATH
 }
 
-@test "ollama install: errors when ASDF_DOWNLOAD_PATH unset" {
-    export ASDF_INSTALL_VERSION="0.5.0"
-    export ASDF_INSTALL_PATH="${TEST_TEMP}/install"
-    unset ASDF_DOWNLOAD_PATH
-
-    run bash "${PLUGIN_DIR}/install"
-    [ "$status" -ne 0 ]
+@test "ollama install: errors without ASDF_DOWNLOAD_PATH" {
+    assert_asdf_env_required "${PLUGIN_DIR}/install" ASDF_DOWNLOAD_PATH
 }
 
 @test "ollama install: extracts via tar on Linux" {

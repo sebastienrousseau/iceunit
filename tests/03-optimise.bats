@@ -276,10 +276,7 @@ teardown() {
 # ── install_recommended_packages ─────────────────────────────────────────────
 
 @test "packages: skips when all installed" {
-    run install_recommended_packages
-
-    [ "$status" -eq 0 ]
-    [[ "$output" == *"already installed"* ]]
+    assert_package_skip install_recommended_packages "already installed"
 }
 
 @test "packages: installs missing packages" {
@@ -293,15 +290,7 @@ teardown() {
 # ── print_summary ────────────────────────────────────────────────────────────
 
 @test "summary: displays applied and skipped items" {
-    APPLIED=("kernel-cmdline" "sysctl" "tlp")
-    SKIPPED=("zram" "btrfs-fstab")
-
-    run print_summary
-
-    [ "$status" -eq 0 ]
-    [[ "$output" == *"kernel-cmdline"* ]]
-    [[ "$output" == *"zram"* ]]
-    [[ "$output" == *"Reboot"* ]]
+    assert_summary_shows_items "kernel-cmdline,sysctl,tlp" "zram,btrfs-fstab"
 }
 
 # ── main execution model ────────────────────────────────────────────────────
@@ -341,11 +330,9 @@ teardown() {
 }
 
 @test "optimise: uses #!/usr/bin/env bash" {
-    run head -1 "$SCRIPTS_DIR/03-optimise.sh"
-    [[ "$output" == "#!/usr/bin/env bash" ]]
+    assert_shebang "$SCRIPTS_DIR/03-optimise.sh"
 }
 
 @test "optimise: no emoji in output" {
-    count=$(perl -CSD -ne '$n++ if /[\x{1F300}-\x{1F9FF}]/; END { print $n // 0 }' "$SCRIPTS_DIR/03-optimise.sh")
-    [ "$count" = "0" ]
+    assert_no_emoji "$SCRIPTS_DIR/03-optimise.sh"
 }
