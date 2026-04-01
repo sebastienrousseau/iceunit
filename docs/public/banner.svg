@@ -1,27 +1,19 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1280" height="640" viewBox="0 0 1280 640" fill="none">
-  <!-- Define filters and gradients for UI harmony -->
+  <!-- Solid background — visible on both light and dark pages -->
+  <rect width="1280" height="640" rx="16" fill="#1e1e2e"/>
+
+  <!-- Define gradients -->
   <defs>
     <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#5A56E0"/>
       <stop offset="100%" stop-color="#EE6FF8"/>
     </linearGradient>
-    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
-      <feGaussianBlur in="SourceAlpha" stdDeviation="6"/>
-      <feOffset dx="0" dy="4" result="offsetblur"/>
-      <feComponentTransfer>
-        <feFuncA type="linear" slope="0.6"/>
-      </feComponentTransfer>
-      <feMerge>
-        <feMergeNode/>
-        <feMergeNode in="SourceGraphic"/>
-      </feMerge>
-    </filter>
   </defs>
 
   <!-- Left Section: MacBook (Positioned using Golden Ratio logic) -->
   <!-- 1280 / 1.618 = 791 (Major) | 1280 - 791 = 489 (Minor) -->
   <!-- Centering MacBook in the minor section (Left) -->
-  <g transform="translate(60, 158) scale(1.8)" filter="url(#shadow)">
+  <g transform="translate(60, 158) scale(1.8)">
     <!-- MacBook body -->
     <rect x="40" y="20" width="240" height="145" rx="8" fill="#181825" stroke="#45475a" stroke-width="2"/>
     <!-- Screen bezel -->
@@ -47,7 +39,7 @@
   </g>
 
   <!-- Right Section: Branding & Hook (Centered in Major section) -->
-  <g transform="translate(640, 170)" filter="url(#shadow)">
+  <g transform="translate(640, 170)">
     <!-- Iceunit Logo -->
     <text font-family="system-ui, sans-serif" font-size="84" font-weight="900" fill="#cba6f7" letter-spacing="-3">Iceunit <tspan fill="#89dceb">(ICU)</tspan></text>
     
