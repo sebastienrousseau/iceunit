@@ -1,5 +1,6 @@
 ---
 description: Solutions for common MacBook Air 2020 CachyOS issues including thermal runaway, Wi-Fi, keyboard freeze, audio crackling, and boot failures.
+verifiedOn: 2026-04-01
 ---
 
 # Troubleshooting
@@ -15,6 +16,8 @@ description: Solutions for common MacBook Air 2020 CachyOS issues including ther
 paru -S mbpfan
 sudo bash scripts/01-thermal-setup.sh
 ```
+
+See [Thermal Setup](/guide/thermal-setup).
 
 Emergency fan override while the script installs:
 ```bash
@@ -35,6 +38,8 @@ echo 8000 | sudo tee <path>/fan1_output
 sudo bash scripts/02-wifi-firmware.sh install-pkg
 ```
 
+See [Wi-Fi Firmware](/guide/wifi-firmware).
+
 ---
 
 ## Keyboard / Trackpad Frozen After Wake
@@ -46,7 +51,7 @@ sudo bash scripts/02-wifi-firmware.sh install-pkg
 sudo modprobe -r apple_bce && sudo modprobe apple_bce
 ```
 
-**Fix (permanent):** Run `03-optimise.sh` which installs `macbook-suspend-fix.service` to do this automatically on every resume.
+**Fix (permanent):** Run `03-optimise.sh` which installs `macbook-suspend-fix.service` to do this automatically on every resume. See [System Optimisation](/guide/optimisation) §6.
 
 ---
 
@@ -59,6 +64,8 @@ sudo modprobe -r apple_bce && sudo modprobe apple_bce
 bash scripts/03-optimise.sh --audio-only
 systemctl --user restart pipewire pipewire-pulse
 ```
+
+See [System Optimisation](/guide/optimisation) §4.
 
 If audio device disappears entirely:
 ```bash
@@ -76,17 +83,6 @@ sudo modprobe apple_bce snd_hda_intel
 ```bash
 sudo bash scripts/01-thermal-setup.sh   # ✅ correct
 sudo scripts/01-thermal-setup.sh        # ❌ fish will try to interpret it
-```
-
----
-
-## `modprobe apple-bce` Fails
-
-**Cause:** `apple_bce` is compiled into the CachyOS kernel (`CONFIG_APPLE_BCE=y`), not as a loadable module. `modprobe` cannot load what's already built in.
-
-**This is not a problem** — if your keyboard and trackpad work, `apple_bce` is active. Verify:
-```bash
-lsmod | grep apple_bce
 ```
 
 ---
@@ -129,5 +125,7 @@ ls /dev/mapper/code_vault
 # Manual open and mount
 sudo cryptsetup open ~/.vault.img code_vault
 sudo mount /dev/mapper/code_vault ~/Code
-sudo chown -R $USER:$USER ~/Code
+sudo chown $USER:$USER ~/Code
 ```
+
+See [Encrypted Code Vault](/guide/vault).

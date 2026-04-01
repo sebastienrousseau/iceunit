@@ -1,5 +1,6 @@
 ---
 description: 05-mount-vault.sh unlocks and mounts the LUKS2 encrypted code vault from ~/.vault.img to ~/Code.
+verifiedOn: 2026-04-01
 ---
 
 # 05-mount-vault.sh
@@ -48,5 +49,5 @@ The script is safe to run multiple times. If the vault is already mounted, it ex
 - `sudo` access for `cryptsetup open`, `mount`, and `chown`
 
 ::: tip Source
-View the full source on [GitHub](https://github.com/sebastienrousseau/cachyos-macbook-intel-2020/blob/main/scripts/05-mount-vault.sh).
+View the full source on [GitHub](https://github.com/sebastienrousseau/iceunit/blob/main/scripts/05-mount-vault.sh).
 :::

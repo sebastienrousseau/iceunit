@@ -1,5 +1,6 @@
 ---
 description: 02-wifi-firmware.sh manages Broadcom BCM4377b Wi-Fi and Bluetooth firmware with verify, backup, restore, and install.
+verifiedOn: 2026-04-01
 ---
 
 # 02-wifi-firmware.sh
@@ -75,5 +76,5 @@ Backups are stored at `~/.config/firmware-backup/brcm/` with a `MANIFEST.txt` li
 - Backup must exist before running `restore`
 
 ::: tip Source
-View the full source on [GitHub](https://github.com/sebastienrousseau/cachyos-macbook-intel-2020/blob/main/scripts/02-wifi-firmware.sh).
+View the full source on [GitHub](https://github.com/sebastienrousseau/iceunit/blob/main/scripts/02-wifi-firmware.sh).
 :::

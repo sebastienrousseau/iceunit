@@ -1,5 +1,6 @@
 ---
 description: 05-desktop-base.sh installs and enables the desktop foundation — GNOME, GDM, fonts, firmware updates, CPU microcode, Bluetooth, system timers, and essential utilities.
+verifiedOn: 2026-04-01
 ---
 
 # 05-desktop-base.sh
@@ -39,5 +40,5 @@ sudo bash workstation/05-desktop-base.sh [--dry-run] [--help]
 - An active internet connection for package installation.
 
 ::: tip Source
-View the full source on [GitHub](https://github.com/sebastienrousseau/cachyos-macbook-intel-2020/blob/main/workstation/05-desktop-base.sh).
+View the full source on [GitHub](https://github.com/sebastienrousseau/iceunit/blob/main/workstation/05-desktop-base.sh).
 :::

@@ -1,5 +1,6 @@
 ---
 description: Partition layout, BTRFS subvolumes, mount options, and ZRAM swap for CachyOS on the MacBook Air 2020.
+verifiedOn: 2026-04-01
 ---
 
 # Partition Layout

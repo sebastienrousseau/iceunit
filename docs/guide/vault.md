@@ -1,5 +1,6 @@
 ---
 description: Create and manage a LUKS2-encrypted BTRFS loopback vault for source code on CachyOS MacBook Air 2020.
+verifiedOn: 2026-04-01
 ---
 
 # Encrypted Code Vault
@@ -26,10 +27,10 @@ What it creates:
 
 ```bash
 # Unlock and mount
-bash scripts/05-mount-vault.sh
+bash [scripts/05-mount-vault.sh](/scripts/05-mount-vault)
 
 # Lock and unmount
-bash scripts/06-unmount-vault.sh
+bash [scripts/06-unmount-vault.sh](/scripts/06-unmount-vault)
 ```
 
 ## Vault Details
@@ -41,7 +42,7 @@ bash scripts/06-unmount-vault.sh
 | Mount point | `~/Code` |
 | Filesystem | BTRFS |
 | Label | `CODE_REPOS` |
-| Encryption | LUKS2 (AES-256-XTS) |
+| Encryption | LUKS2 (aes-xts-plain64, 512-bit key) |
 | Current size | 60G (41% used on reference system) |
 
 ## Manual Operations
@@ -50,7 +51,7 @@ bash scripts/06-unmount-vault.sh
 # Open the vault manually
 sudo cryptsetup open ~/.vault.img code_vault
 sudo mount /dev/mapper/code_vault ~/Code
-sudo chown -R $USER:$USER ~/Code
+sudo chown $USER:$USER ~/Code
 
 # Close the vault manually
 sudo umount ~/Code

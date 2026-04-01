@@ -1,5 +1,6 @@
 ---
 description: Disable Apple T2 Startup Security and allow external boot on the MacBook Air 2020 for CachyOS installation.
+verifiedOn: 2026-04-01
 ---
 
 # Disable T2 Security

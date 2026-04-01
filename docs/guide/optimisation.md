@@ -1,5 +1,6 @@
 ---
 description: Post-install optimisation for the MacBook Air 2020 with kernel parameters, TLP, PipeWire audio, sysctl tuning, and suspend fix.
+verifiedOn: 2026-04-01
 ---
 
 # System Optimisation
@@ -109,6 +110,14 @@ Confirms that ZRAM is correctly configured (15.4 GB, zstd compression). No chang
 ### 8. Power Profiles Daemon
 
 Checks whether both TLP and `power-profiles-daemon` are active. If both are running, the script **warns about the conflict** and shows the commands to disable one or the other. It does not disable either service automatically — this is a manual decision.
+
+### 9. Intel i915 GUC/HUC
+
+Enables GPU firmware offloading by writing `options i915 enable_guc=3 enable_fbc=1` to `/etc/modprobe.d/i915.conf`. This offloads GuC (command submission) and HuC (video decode) to the GPU's own firmware, reducing CPU overhead on the Ice Lake Iris Plus.
+
+### 10. RTC UTC Clock Sync
+
+Sets the hardware clock to UTC via `timedatectl set-local-rtc 0`. This ensures correct time handling when dual-booting with macOS, which also expects UTC on modern versions.
 
 ## Execution Model
 

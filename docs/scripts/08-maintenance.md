@@ -1,5 +1,6 @@
 ---
 description: 08-maintenance.sh performs periodic maintenance including system upgrades, T2 health checks, SSD TRIM, cache cleanup, and bootloader integrity verification.
+verifiedOn: 2026-04-01
 ---
 
 # 08-maintenance.sh
@@ -38,5 +39,5 @@ sudo bash scripts/08-maintenance.sh [--dry-run] [--help]
 - `pacman-contrib` for package cache cleanup (`paccache`).
 
 ::: tip Source
-View the full source on [GitHub](https://github.com/sebastienrousseau/cachyos-macbook-intel-2020/blob/main/scripts/08-maintenance.sh).
+View the full source on [GitHub](https://github.com/sebastienrousseau/iceunit/blob/main/scripts/08-maintenance.sh).
 :::

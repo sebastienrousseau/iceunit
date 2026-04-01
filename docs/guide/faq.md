@@ -1,5 +1,6 @@
 ---
 description: FAQ about running CachyOS on the MacBook Air 2020 covering model compatibility, Touch ID, dual-boot, kernel updates, and AUR helpers.
+verifiedOn: 2026-04-01
 ---
 
 # FAQ
@@ -40,12 +41,6 @@ For a MacBook, the T2 support in the CachyOS kernel is the most important reason
 
 Yes. Both `paru` and `yay` are supported. The scripts detect whichever is installed. If both are installed, `paru` takes precedence.
 
-## How do I update the site documentation?
+## How do I report an issue or suggest an improvement?
 
-Edit any `.md` file in the `docs/` directory and push to `main`. GitHub Actions will rebuild and deploy the site automatically within ~2 minutes.
-
-To preview changes locally:
-```bash
-npm install
-npm run docs:dev
-```
+[Open an issue on GitHub](https://github.com/sebastienrousseau/iceunit/issues) with a description of the problem or suggestion. Pull requests for documentation improvements are also welcome — see the repository README for contributor guidelines.

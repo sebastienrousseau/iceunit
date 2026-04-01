@@ -1,5 +1,6 @@
 ---
 description: 03-optimise.sh applies kernel params, sysctl tuning, TLP power management, PipeWire audio, and suspend service.
+verifiedOn: 2026-04-01
 ---
 
 # 03-optimise.sh
@@ -88,5 +89,5 @@ Warns if both TLP and `power-profiles-daemon` are active. Does **not** disable e
 - PipeWire running for audio section
 
 ::: tip Source
-View the full source on [GitHub](https://github.com/sebastienrousseau/cachyos-macbook-intel-2020/blob/main/scripts/03-optimise.sh).
+View the full source on [GitHub](https://github.com/sebastienrousseau/iceunit/blob/main/scripts/03-optimise.sh).
 :::

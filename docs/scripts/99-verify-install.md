@@ -1,13 +1,13 @@
 ---
 description: Comprehensive system health audit for Iceunit. Verifies packages, services, kernel parameters, firmware, and storage mounts.
+verifiedOn: 2026-04-01
 ---
 
 # System Health Audit
 
 **Status: Recommended**
 
-The `99-verify-install.sh` script provides a high-fidelity audit of your MacBook Air 2020's configuration.
- It is designed to match the Iceunit professional aesthetic.
+The `99-verify-install.sh` script validates the full system configuration of your MacBook Air 2020.
 
 ## Audit Categories
 
@@ -52,3 +52,11 @@ bash scripts/99-verify-install.sh --auto-fix  # Auto-fix failed checks
 | **`✓`** (Green) | Active & Healthy | None |
 | **`>`** (Purple) | Pending Success | **Reboot required** to apply changes. |
 | **`✗`** (Red) | Failed / Missing | Run `sudo make install` to fix. |
+
+## Prerequisites
+
+- Root access for `--auto-fix` mode (read-only audit runs without root).
+
+::: tip Source
+View the full source on [GitHub](https://github.com/sebastienrousseau/iceunit/blob/main/scripts/99-verify-install.sh).
+:::

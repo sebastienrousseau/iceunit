@@ -1,5 +1,6 @@
 ---
 description: 04-bootloader.sh provides Limine management, EFI boot order, optional rEFInd, and BTRFS snapshot boot guidance.
+verifiedOn: 2026-04-01
 ---
 
 # 04-bootloader.sh
@@ -88,5 +89,5 @@ To roll back permanently: `sudo snapper rollback <number>` then reboot.
 - `snapper` (for snapshot listing)
 
 ::: tip Source
-View the full source on [GitHub](https://github.com/sebastienrousseau/cachyos-macbook-intel-2020/blob/main/scripts/04-bootloader.sh).
+View the full source on [GitHub](https://github.com/sebastienrousseau/iceunit/blob/main/scripts/04-bootloader.sh).
 :::

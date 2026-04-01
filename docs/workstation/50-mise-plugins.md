@@ -1,5 +1,6 @@
 ---
 description: Install and manage AI CLI tools with mise plugins for reproducible, version-pinned tooling.
+verifiedOn: 2026-04-01
 ---
 
 # Mise Plugins
@@ -65,3 +66,7 @@ mise-plugins/<tool>/bin/
 ```
 
 Then add a `register_and_install <tool>` call in `workstation/50-mise-plugins.sh`.
+
+::: tip Source
+View the full source on [GitHub](https://github.com/sebastienrousseau/iceunit/blob/main/workstation/50-mise-plugins.sh).
+:::

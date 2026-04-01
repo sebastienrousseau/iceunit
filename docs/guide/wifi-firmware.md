@@ -1,5 +1,6 @@
 ---
 description: Install Broadcom BCM4377b Wi-Fi and Bluetooth firmware on the MacBook Air 2020 from the arch-mact2 mirror or macOS.
+verifiedOn: 2026-04-01
 ---
 
 # Wi-Fi Firmware
@@ -16,6 +17,7 @@ The MacBook Air 2020 uses board ID **fiji**. The following files must be present
 | `brcmfmac4377b3-pcie.apple,fiji.clm_blob` | Channel/regulatory data |
 | `brcmfmac4377b3-pcie.apple,fiji.txcap_blob` | Transmit calibration |
 | `brcmbt4377b3-apple,formosa.bin` | Bluetooth firmware |
+| `brcmbt4377b3-apple,formosa.ptb` | Bluetooth calibration data |
 
 ## Option 1 — Install via Package (Recommended)
 
@@ -72,7 +74,7 @@ brcmfmac 0000:01:00.0: Direct firmware load for brcm/... succeeded
 The `02-wifi-firmware.sh` script supports backup and restore to preserve your firmware across reinstalls:
 
 ```bash
-# Backup current firmware to ~/wifi-firmware-backup/
+# Backup current firmware to ~/.config/firmware-backup/brcm/
 bash scripts/02-wifi-firmware.sh backup
 
 # Restore from backup

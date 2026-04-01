@@ -1,5 +1,6 @@
 ---
 description: 00-setup-vault.sh creates a LUKS2-encrypted BTRFS loopback container for source code on CachyOS MacBook Air 2020.
+verifiedOn: 2026-04-01
 ---
 
 # 00-setup-vault.sh
@@ -63,5 +64,5 @@ The script is interactive — it prompts for vault size and LUKS passphrase.
 - Mount detection uses `findmnt` instead of parsing `mount` output
 
 ::: tip Source
-View the full source on [GitHub](https://github.com/sebastienrousseau/cachyos-macbook-intel-2020/blob/main/scripts/00-setup-vault.sh).
+View the full source on [GitHub](https://github.com/sebastienrousseau/iceunit/blob/main/scripts/00-setup-vault.sh).
 :::

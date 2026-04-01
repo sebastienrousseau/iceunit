@@ -1,5 +1,6 @@
 ---
 description: Overview of CachyOS on the MacBook Air 2020 with field-tested solutions for thermal, Wi-Fi firmware, fish shell, and apple_bce issues.
+verifiedOn: 2026-04-01
 ---
 
 # Introduction
@@ -17,7 +18,7 @@ For Intel Macs reaching end-of-life from Apple's update support, CachyOS is an e
 The official CachyOS wiki covers T2 Macs generally. This guide is specific to the **MacBook Air 2020 (MacBookAir9,1)** and documents real-world issues you'll encounter that aren't covered elsewhere:
 
 - The fan exposes itself via ACPI (`APP0001:00`), not the traditional `applesmc` platform path — this breaks the default `thermald` configuration
-- `apple_bce` is compiled into the CachyOS kernel (not a loadable module), so `modprobe apple_bce` always fails
+- The `apple_bce` module sometimes needs reloading after suspend — `modprobe -r apple_bce && modprobe apple_bce` restores keyboard/trackpad
 - Glob patterns in scripts fail silently when called from **fish shell** via `sudo bash`
 - `paru`/`yay` cannot be called via `sudo -u` inside a sudo session
 
