@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -596,7 +597,7 @@ func TestExecuteTaskSuccess(t *testing.T) {
 		Weight:   1.0,
 	}
 
-	cmd := executeTask(task)
+	cmd := executeTask(task, root)
 	msg := cmd()
 	result, ok := msg.(taskCompletedMsg)
 	if !ok {
@@ -627,7 +628,7 @@ func TestExecuteTaskFailure(t *testing.T) {
 		Weight:   1.0,
 	}
 
-	cmd := executeTask(task)
+	cmd := executeTask(task, root)
 	msg := cmd()
 	result, ok := msg.(taskCompletedMsg)
 	if !ok {
@@ -639,6 +640,11 @@ func TestExecuteTaskFailure(t *testing.T) {
 }
 
 func TestExecuteTaskScriptNotFound(t *testing.T) {
+	root, err := resolveProjectRoot()
+	if err != nil {
+		t.Fatalf("resolveProjectRoot: %v", err)
+	}
+
 	task := Task{
 		Category: "Missing",
 		Software: "nonexistent",
@@ -646,7 +652,7 @@ func TestExecuteTaskScriptNotFound(t *testing.T) {
 		Weight:   1.0,
 	}
 
-	cmd := executeTask(task)
+	cmd := executeTask(task, root)
 	msg := cmd()
 	result, ok := msg.(taskCompletedMsg)
 	if !ok {
@@ -678,7 +684,7 @@ func TestExecuteTaskWithPacmanOutput(t *testing.T) {
 		Weight:   1.0,
 	}
 
-	cmd := executeTask(task)
+	cmd := executeTask(task, root)
 	msg := cmd()
 	result, ok := msg.(taskCompletedMsg)
 	if !ok {
@@ -710,7 +716,7 @@ func TestExecuteTaskWithErrorLines(t *testing.T) {
 		Weight:   1.0,
 	}
 
-	cmd := executeTask(task)
+	cmd := executeTask(task, root)
 	msg := cmd()
 	result := msg.(taskCompletedMsg)
 	if result.err == nil {
@@ -743,7 +749,7 @@ func TestExecuteTaskEmptyOutput(t *testing.T) {
 		Weight:   1.0,
 	}
 
-	cmd := executeTask(task)
+	cmd := executeTask(task, root)
 	msg := cmd()
 	result := msg.(taskCompletedMsg)
 	if result.err == nil {
@@ -777,7 +783,7 @@ func TestExecuteTaskStartError(t *testing.T) {
 	os.Setenv("PATH", "")
 	defer os.Setenv("PATH", origPath)
 
-	cmd := executeTask(task)
+	cmd := executeTask(task, root)
 	msg := cmd()
 	result := msg.(taskCompletedMsg)
 	if result.err == nil {
@@ -806,7 +812,7 @@ func TestExecuteTaskWithNoErrorKeyword(t *testing.T) {
 		Weight:   1.0,
 	}
 
-	cmd := executeTask(task)
+	cmd := executeTask(task, root)
 	msg := cmd()
 	result := msg.(taskCompletedMsg)
 	if result.err == nil {
@@ -901,6 +907,44 @@ func TestMainSubprocessWithT2Check(t *testing.T) {
 	}
 	cmd.Env = filtered
 	_ = cmd.Run()
+}
+
+// ── ringLog ─────────────────────────────────────────────────────────────────
+
+func TestRingLogEmpty(t *testing.T) {
+	r := newRingLog(5)
+	lines := r.Lines()
+	if len(lines) != 0 {
+		t.Errorf("Expected 0 lines, got %d", len(lines))
+	}
+}
+
+func TestRingLogUnderCapacity(t *testing.T) {
+	r := newRingLog(5)
+	r.Add("a")
+	r.Add("b")
+	lines := r.Lines()
+	if len(lines) != 2 {
+		t.Fatalf("Expected 2 lines, got %d", len(lines))
+	}
+	if lines[0] != "a" || lines[1] != "b" {
+		t.Errorf("Expected [a, b], got %v", lines)
+	}
+}
+
+func TestRingLogOverflow(t *testing.T) {
+	r := newRingLog(3)
+	for i := range 5 {
+		r.Add(fmt.Sprintf("line%d", i))
+	}
+	lines := r.Lines()
+	if len(lines) != 3 {
+		t.Fatalf("Expected 3 lines, got %d", len(lines))
+	}
+	// Should have the last 3: line2, line3, line4
+	if lines[0] != "line2" || lines[1] != "line3" || lines[2] != "line4" {
+		t.Errorf("Expected [line2, line3, line4], got %v", lines)
+	}
 }
 
 // ── helpers ─────────────────────────────────────────────────────────────────

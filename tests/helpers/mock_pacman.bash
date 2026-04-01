@@ -3,9 +3,17 @@
 # mock_pacman.bash — Higher-level DSL wrappers for pacman mocking
 # =============================================================================
 
-# Mock all packages as installed (pacman -Q succeeds)
+# Mock all packages as installed (pacman -Qq echoes back queried package names)
 mock_all_packages_installed() {
-    mock_command pacman 0
+    cat > "${MOCK_BIN}/pacman" << ENDMOCK
+#!/usr/bin/env bash
+echo "\$*" >> "${MOCK_CALLS}/pacman"
+for arg in "\$@"; do
+    case "\$arg" in -*|--*) continue ;; *) echo "\$arg" ;; esac
+done
+exit 0
+ENDMOCK
+    chmod +x "${MOCK_BIN}/pacman"
 }
 
 # Mock all packages as missing (pacman -Q fails)

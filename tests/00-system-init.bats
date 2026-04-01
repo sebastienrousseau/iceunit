@@ -8,8 +8,8 @@ setup() {
 }
 
 @test "system init: preflight passes when all packages present" {
-    # Mock pacman -Qq to return all packages
-    mock_command pacman 0 "package"
+    # Mock pacman -Qq to echo back queried package names (all installed)
+    mock_all_packages_installed
     
     run bash "$RUNNABLE_SCRIPT" --dry-run
     [ "$status" -eq 0 ]

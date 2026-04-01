@@ -16,6 +16,8 @@ COPY workstation/ ./workstation/
 COPY mise-plugins/ ./mise-plugins/
 COPY tests/*.bats ./tests/
 COPY tests/test_helper.bash ./tests/
+COPY tests/helpers/ ./tests/helpers/
+COPY tests/contracts/ ./tests/contracts/
 
 # Use system-installed bats libraries
 RUN mkdir -p tests/lib \

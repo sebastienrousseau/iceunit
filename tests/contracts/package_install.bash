@@ -9,7 +9,7 @@
 assert_package_skip() {
     local func="$1"
     local expected="${2:-already installed}"
-    mock_command pacman 0
+    mock_all_packages_installed
 
     run "$func"
 

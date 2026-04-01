@@ -9,14 +9,14 @@ setup() {
 
 @test "verify install: reports success when everything is optimal" {
     # Mock everything to succeed
-    mock_command pacman 0 "pkg"
+    mock_all_packages_installed
     mock_command systemctl 0 "active"
     mock_command grep 0 "match"
     mock_command findmnt 0 "target"
     mock_command lsmod 0 "apple_bce"
     mock_command ip 0 "wlan0"
     mock_command git 0 "true"
-    
+
     # Mock files
     mkdir -p "${TEST_TEMP}/etc/sysctl.d"
     mkdir -p "${TEST_TEMP}/etc/tlp.d"
@@ -49,7 +49,7 @@ setup() {
 }
 
 @test "verify install: checks i915 GUC/HUC config" {
-    mock_command pacman 0 "pkg"
+    mock_all_packages_installed
     mock_command systemctl 0 "active"
     mock_command lsmod 0 "apple_bce"
     mock_command ip 0 "wlan0"
@@ -204,7 +204,7 @@ setup() {
 }
 
 @test "verify install: detects container runtime" {
-    mock_command pacman 0 "pkg"
+    mock_all_packages_installed
     mock_command systemctl 0 "active"
     mock_command lsmod 0 "apple_bce"
     mock_command ip 0 "wlan0"
@@ -220,7 +220,7 @@ setup() {
 }
 
 @test "verify install: detects reboot required for kernel" {
-    mock_command pacman 0 "pkg"
+    mock_all_packages_installed
     mock_command systemctl 0 "active"
     mock_command lsmod 0 "apple_bce"
     mock_command ip 0 "wlan0"

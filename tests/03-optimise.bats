@@ -14,7 +14,7 @@ setup() {
     # Only mock hardware/root/package commands
     mock_command sysctl 0
     mock_command systemctl 0
-    mock_command pacman 0
+    mock_all_packages_installed
     mock_command mount 0
     mock_command btrfs 0
     mock_command zramctl 0 "zram0 lzo-rle 15.4G 4K 65B 12K 8 [SWAP]"
@@ -44,7 +44,7 @@ teardown() {
 }
 
 @test "kernel params: skips already-present params" {
-    echo "quiet nowatchdog splash rw intel_idle.max_cstate=4 snd_hda_intel.power_save=0 pcie_aspm=off mem_sleep_default=deep" > "${TEST_TEMP}/etc/kernel/cmdline"
+    echo "quiet nowatchdog splash rw intel_idle.max_cstate=4 snd_hda_intel.power_save=0 mem_sleep_default=deep" > "${TEST_TEMP}/etc/kernel/cmdline"
 
     run optimise_kernel_params
 
@@ -64,7 +64,7 @@ teardown() {
     run optimise_kernel_params
 
     [ -f "${TEST_TEMP}/etc/sysctl.d/99-macbook-air-2020.conf" ]
-    grep -q "vm.swappiness = 10" "${TEST_TEMP}/etc/sysctl.d/99-macbook-air-2020.conf"
+    grep -q "vm.swappiness = 133" "${TEST_TEMP}/etc/sysctl.d/99-macbook-air-2020.conf"
     grep -q "vm.vfs_cache_pressure = 50" "${TEST_TEMP}/etc/sysctl.d/99-macbook-air-2020.conf"
     grep -q "kernel.nmi_watchdog = 0" "${TEST_TEMP}/etc/sysctl.d/99-macbook-air-2020.conf"
 }

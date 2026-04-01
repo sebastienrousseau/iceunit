@@ -93,11 +93,14 @@ header "Package Verification"
 # Core mandatory packages (excluding optional container choice)
 PKGS=(bc lm_sensors htop btop nvme-cli smartmontools powertop cpupower tlp pipewire pipewire-pulse wireplumber limine efibootmgr refind snapper btrfs-progs cryptsetup git curl wget base-devel ripgrep fd fzf bat eza jq yq neovim tmux zoxide atuin direnv starship python python-pip python-pipx nodejs npm go rust cmake ninja gcc clang mold lazygit github-cli ollama kubectl helm k9s terraform ansible stern dive rsync gitleaks age sops openssh gnupg ufw)
 
+declare -A _INSTALLED
+while IFS= read -r p; do
+    [[ -n "$p" ]] && _INSTALLED["$p"]=1
+done < <(pacman -Qq "${PKGS[@]}" 2>/dev/null)
+
 MISSING_PKGS=()
 for pkg in "${PKGS[@]}"; do
-    if ! pacman -Qq "$pkg" >/dev/null 2>&1; then
-        MISSING_PKGS+=("$pkg")
-    fi
+    [[ -z "${_INSTALLED[$pkg]:-}" ]] && MISSING_PKGS+=("$pkg")
 done
 
 MISSING_COUNT=${#MISSING_PKGS[@]}
@@ -205,11 +208,14 @@ check "Git GPG Signing" "commit.gpgsign" "[[ \$(git config --get commit.gpgsign 
 # ── 7. APPLICATION SUITE ─────────────────────────────────────────────────────
 header "Application Suite"
 APPS=(google-chrome brave-bin libreoffice-fresh loupe gnome-screenshot vlc ghostty zed extension-manager virt-manager nautilus)
+declare -A _INST_APPS
+while IFS= read -r p; do
+    [[ -n "$p" ]] && _INST_APPS["$p"]=1
+done < <(pacman -Qq "${APPS[@]}" 2>/dev/null)
+
 MISSING_APPS=()
 for app in "${APPS[@]}"; do
-    if ! pacman -Qq "$app" >/dev/null 2>&1; then
-        MISSING_APPS+=("$app")
-    fi
+    [[ -z "${_INST_APPS[$app]:-}" ]] && MISSING_APPS+=("$app")
 done
 
 if [ ${#MISSING_APPS[@]} -eq 0 ]; then

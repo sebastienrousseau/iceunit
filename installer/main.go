@@ -38,6 +38,49 @@ type model struct {
 	done         bool
 	finalizing   bool
 	err          error
+	projectRoot  string
+}
+
+// ringLog is a fixed-capacity ring buffer for capturing recent output lines.
+// It prevents unbounded memory growth when scripts emit large volumes of output.
+type ringLog struct {
+	mu    sync.Mutex
+	lines []string
+	cap   int
+	count int
+}
+
+func newRingLog(capacity int) *ringLog {
+	return &ringLog{lines: make([]string, capacity), cap: capacity}
+}
+
+func (r *ringLog) Add(line string) {
+	r.mu.Lock()
+	r.lines[r.count%r.cap] = line
+	r.count++
+	r.mu.Unlock()
+}
+
+// Lines returns all captured lines in chronological order.
+func (r *ringLog) Lines() []string {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if r.count == 0 {
+		return nil
+	}
+	n := r.count
+	if n > r.cap {
+		n = r.cap
+	}
+	result := make([]string, n)
+	start := 0
+	if r.count > r.cap {
+		start = r.count % r.cap
+	}
+	for i := range n {
+		result[i] = r.lines[(start+i)%r.cap]
+	}
+	return result
 }
 
 type taskCompletedMsg struct{ err error }
@@ -65,6 +108,8 @@ func newModel() model {
 	s := spinner.New()
 	s.Spinner = spinner.Dot
 	s.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("63"))
+
+	root, _ := resolveProjectRoot()
 
 	// Weights reflect approximate relative duration of each task.
 	// Heavy package installs get higher weight; quick config scripts get lower.
@@ -98,13 +143,14 @@ func newModel() model {
 		totalWeight: totalWeight,
 		spinner:     s,
 		progress:    p,
+		projectRoot: root,
 	}
 }
 
 func (m model) Init() tea.Cmd {
 	return tea.Batch(
 		m.spinner.Tick,
-		executeTask(m.tasks[m.index]),
+		executeTask(m.tasks[m.index], m.projectRoot),
 		m.tickProgress(),
 	)
 }
@@ -165,7 +211,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Batch(
 				m.progress.SetPercent(totalPercent),
 				tea.Printf("%s %s", checkMark, completedStyle.Render(task.Category)),
-				executeTask(m.tasks[m.index]),
+				executeTask(m.tasks[m.index], m.projectRoot),
 			)
 		} else {
 			m.finalizing = true
@@ -296,12 +342,8 @@ var (
 )
 
 
-func executeTask(task Task) tea.Cmd {
+func executeTask(task Task, root string) tea.Cmd {
 	return func() tea.Msg {
-		root, err := resolveProjectRoot()
-		if err != nil {
-			return taskCompletedMsg{err: fmt.Errorf("could not resolve project root: %w", err)}
-		}
 		absPath := filepath.Join(root, task.Path)
 		args := append([]string{absPath}, os.Args[1:]...)
 		cmd := exec.Command("bash", args...)
@@ -314,32 +356,31 @@ func executeTask(task Task) tea.Cmd {
 			return taskCompletedMsg{err: err}
 		}
 
-		var stderrLog strings.Builder
+		log := newRingLog(100)
 		var wg sync.WaitGroup
-		wg.Add(1)
+		wg.Add(2)
 
-		// Stream output
-		go func() {
+		// Scan a pipe concurrently — avoids the sequential io.MultiReader deadlock
+		scanPipe := func(pipe io.ReadCloser) {
 			defer wg.Done()
-			reader := io.MultiReader(stdout, stderr)
-			scanner := bufio.NewScanner(reader)
+			scanner := bufio.NewScanner(pipe)
 			for scanner.Scan() {
 				line := scanner.Text()
-				// Log to stderr buffer for error reporting
-				stderrLog.WriteString(line + "\n")
-
+				log.Add(line)
 				matches := pacmanRegex.FindStringSubmatch(line)
 				if len(matches) > 2 && pInstance != nil {
 					pInstance.Send(pkgUpdateMsg(fmt.Sprintf("%s %s", matches[2], matches[1])))
 				}
 			}
-		}()
+		}
+		go scanPipe(stdout)
+		go scanPipe(stderr)
 
-		err = cmd.Wait()
-		wg.Wait() // Ensure goroutine finishes before reading stderrLog
+		err := cmd.Wait()
+		wg.Wait() // Ensure goroutines finish before reading log
 		if err != nil {
 			var errLines []string
-			allLines := strings.Split(strings.TrimSpace(stderrLog.String()), "\n")
+			allLines := log.Lines()
 			for _, line := range allLines {
 				if strings.Contains(strings.ToLower(line), "error:") {
 					errLines = append(errLines, strings.TrimSpace(line))
@@ -347,7 +388,6 @@ func executeTask(task Task) tea.Cmd {
 			}
 			errMsg := err.Error()
 			if len(errLines) > 0 {
-				// Take last 2 unique error lines if possible
 				errMsg = errLines[len(errLines)-1]
 			} else if len(allLines) > 0 {
 				errMsg = fmt.Sprintf("%v: %s", err, allLines[len(allLines)-1])

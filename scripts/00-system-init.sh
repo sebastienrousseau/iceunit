@@ -28,12 +28,15 @@ PKGS=(
 )
 
 # ── SMART CHECK ──────────────────────────────────────────────────────────────
-# Identify which packages are actually missing
+# Batch-query installed packages (single fork) then diff against PKGS
+declare -A _INSTALLED
+while IFS= read -r p; do
+    [[ -n "$p" ]] && _INSTALLED["$p"]=1
+done < <(pacman -Qq "${PKGS[@]}" 2>/dev/null)
+
 MISSING_PKGS=()
 for pkg in "${PKGS[@]}"; do
-    if ! pacman -Qq "$pkg" >/dev/null 2>&1; then
-        MISSING_PKGS+=("$pkg")
-    fi
+    [[ -z "${_INSTALLED[$pkg]:-}" ]] && MISSING_PKGS+=("$pkg")
 done
 
 if [ ${#MISSING_PKGS[@]} -eq 0 ]; then
@@ -42,8 +45,18 @@ if [ ${#MISSING_PKGS[@]} -eq 0 ]; then
 fi
 
 # ── MIRROR RANKING ───────────────────────────────────────────────────────────
-# Rank mirrors before installation for faster downloads
-if command -v cachyos-rate-mirrors &>/dev/null; then
+# Skip ranking if mirrorlist was refreshed within the last 24 hours
+_MIRRORLIST="/etc/pacman.d/mirrorlist"
+_MIRROR_TTL=$((24 * 3600))
+_mirror_fresh=false
+if [[ -f "$_MIRRORLIST" ]]; then
+    _mirror_age=$(( $(date +%s) - $(stat -c %Y "$_MIRRORLIST") ))
+    (( _mirror_age < _MIRROR_TTL )) && _mirror_fresh=true
+fi
+
+if $_mirror_fresh; then
+    printf '\033[0;36m[INFO]\033[0m Mirrorlist is fresh (%dh old) — skipping ranking\n' "$(( _mirror_age / 3600 ))"
+elif command -v cachyos-rate-mirrors &>/dev/null; then
     printf '\033[0;36m[INFO]\033[0m Ranking mirrors via cachyos-rate-mirrors...\n'
     dryrun cachyos-rate-mirrors
     printf '\033[0;32m[OK]\033[0m Mirrors ranked.\n'

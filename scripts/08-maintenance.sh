@@ -65,8 +65,18 @@ require_root() {
 system_upgrade() {
     header "System Upgrade"
 
-    # Rank mirrors for fastest downloads before upgrading
-    if command -v cachyos-rate-mirrors &>/dev/null; then
+    # Skip ranking if mirrorlist was refreshed within the last 24 hours
+    local _mirrorlist="/etc/pacman.d/mirrorlist"
+    local _mirror_ttl=$((24 * 3600))
+    local _mirror_fresh=false
+    if [[ -f "$_mirrorlist" ]]; then
+        local _mirror_age=$(( $(date +%s) - $(stat -c %Y "$_mirrorlist") ))
+        (( _mirror_age < _mirror_ttl )) && _mirror_fresh=true
+    fi
+
+    if $_mirror_fresh; then
+        info "Mirrorlist is fresh ($((  _mirror_age / 3600 ))h old) — skipping ranking"
+    elif command -v cachyos-rate-mirrors &>/dev/null; then
         info "Ranking mirrors via cachyos-rate-mirrors..."
         dryrun cachyos-rate-mirrors
     elif command -v rate-mirrors &>/dev/null; then
@@ -77,7 +87,7 @@ system_upgrade() {
         dryrun reflector --latest 10 --protocol https --sort rate --save /etc/pacman.d/mirrorlist
     else
         info "No mirror ranker found — using existing mirrorlist"
-    fi
+    fi  # end mirror ranking
 
     local aur_user="${SUDO_USER:-$USER}"
     if command -v paru &>/dev/null; then

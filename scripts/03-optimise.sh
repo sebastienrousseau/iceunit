@@ -67,7 +67,7 @@ optimise_kernel_params() {
 
     # Params already present (nowatchdog is already set)
     # We add Ice Lake-specific and T2-specific tweaks
-    local cmdline_params=("intel_idle.max_cstate=4" "snd_hda_intel.power_save=0" "pcie_aspm=off" "mem_sleep_default=deep")
+    local cmdline_params=("intel_idle.max_cstate=4" "snd_hda_intel.power_save=0" "mem_sleep_default=deep")
 
     # Handle cmdline
     local current_cmdline=""
@@ -102,13 +102,13 @@ optimise_kernel_params() {
     info "Applying sysctl optimisations..."
     dryrun tee /etc/sysctl.d/99-macbook-air-2020.conf > /dev/null << 'EOF'
 # MacBook Air 2020 (CachyOS) — sysctl optimisations
-# ZRAM is 15.4G — keep swappiness very low to prefer RAM
-vm.swappiness = 10
+# ZRAM is 15.4G — high swappiness maximises compressed-RAM utilisation
+vm.swappiness = 133
 vm.vfs_cache_pressure = 50
 
-# Writeback tuning for BTRFS on NVMe — reduce wear
-vm.dirty_writeback_centisecs = 6000
-vm.dirty_expire_centisecs = 6000
+# Writeback tuning for BTRFS on NVMe — balance wear vs responsiveness
+vm.dirty_writeback_centisecs = 1500
+vm.dirty_expire_centisecs = 1500
 
 # Network performance
 net.core.netdev_max_backlog = 4096
@@ -158,9 +158,9 @@ NVME_POWER_PM_ON_AC=on
 NVME_POWER_PM_ON_BAT=auto
 
 # ── PCIe ASPM ────────────────────────────────────────────────
-# Set to default — we've disabled in cmdline for T2 stability
+# Per-device ASPM managed by TLP — save 10-15% battery on bat
 PCIE_ASPM_ON_AC=default
-PCIE_ASPM_ON_BAT=default
+PCIE_ASPM_ON_BAT=powersupersave
 
 # ── Wi-Fi (Broadcom BCM4377b) ─────────────────────────────────
 # Power management causes disconnects — disable
@@ -210,7 +210,6 @@ optimise_btrfs() {
   noatime         — Don't update access times (reduces writes ~30%)
   compress=zstd:1 — Level 1 zstd compression (fast + good ratio on code)
   space_cache=v2  — Faster space accounting
-  autodefrag      — Background defragmentation (helps with small files)
   discard=async   — Async TRIM for NVMe longevity
 
 EOF
@@ -219,7 +218,7 @@ EOF
     info "Your current root entry in /etc/fstab should have these options:"
     echo ""
     echo "  UUID=${uuid}  /  btrfs  \\"
-    echo "    rw,noatime,compress=zstd:1,space_cache=v2,autodefrag,discard=async,subvol=/@  0 0"
+    echo "    rw,noatime,compress=zstd:1,space_cache=v2,discard=async,subvol=/@  0 0"
     echo ""
     info "To apply: sudo nano /etc/fstab and update the root and subvolume mount lines"
     info "After editing: sudo mount -o remount,noatime,compress=zstd:1 /"
@@ -433,9 +432,14 @@ install_recommended_packages() {
         "cpupower"          # CPU frequency scaling tool
     )
 
+    declare -A _inst
+    while IFS= read -r p; do
+        [[ -n "$p" ]] && _inst["$p"]=1
+    done < <(pacman -Qq "${packages[@]}" 2>/dev/null)
+
     local to_install=()
     for pkg in "${packages[@]}"; do
-        if ! pacman -Q "$pkg" &>/dev/null; then
+        if [[ -z "${_inst[$pkg]:-}" ]]; then
             to_install+=("$pkg")
         else
             skip "${pkg} (already installed)"
