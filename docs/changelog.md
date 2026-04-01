@@ -4,6 +4,32 @@ description: Release history and known issues for CachyOS MacBook Air 2020 scrip
 
 # Changelog
 
+## v0.0.2 — April 2026
+
+### Performance
+
+- Batch `pacman -Qq` queries into a single fork with associative-array lookups (`00-system-init.sh`, `03-optimise.sh`, `99-verify-install.sh`)
+- Add 24-hour TTL cache for mirror ranking — skip re-ranking when mirrorlist is fresh (`00-system-init.sh`, `08-maintenance.sh`)
+- Replace unbounded `strings.Builder` with fixed-capacity ring buffer (100 lines) in Go installer
+- Replace sequential `io.MultiReader` with concurrent stdout/stderr goroutines in Go installer
+- Resolve `projectRoot` once at startup instead of per-task in Go installer
+
+### Fixed
+
+- `vm.swappiness` `10` → `133` — correct value for ZRAM (compressed-RAM swap benefits from aggressive swapping)
+- `vm.dirty_writeback_centisecs` / `vm.dirty_expire_centisecs` `6000` → `1500` — better responsiveness without excessive NVMe wear
+- Removed `autodefrag` from BTRFS mount recommendations — causes write amplification on NVMe with no seek benefit
+- Removed `pcie_aspm=off` from kernel cmdline — blanket disable kills 10-15% battery life
+- Set TLP `PCIE_ASPM_ON_BAT=powersupersave` — per-device ASPM management by TLP replaces global kernel disable
+- Fixed `tests/Dockerfile.unit` — missing `COPY tests/helpers/` and `COPY tests/contracts/` directives
+
+### Docs
+
+- Updated all documentation to reflect changed sysctl values, kernel parameters, BTRFS options, and TLP config
+- Updated test count from 230 to 303
+
+---
+
 ## v1.1.0 — March 2026
 
 ### Added

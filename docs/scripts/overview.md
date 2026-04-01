@@ -29,7 +29,7 @@ All scripts support dry-run mode: `make <target> DRY_RUN=1` (e.g. `make thermal 
 All scripts follow these conventions:
 
 - **`#!/usr/bin/env bash`** — always run under bash, never rely on the calling shell
-- **`set -euo pipefail`** — exit on error, undefined variables, or pipe failures
+- **`set -Eeuo pipefail`** — exit on error, inherited ERR traps, undefined variables, or pipe failures
 - **`--dry-run` flag** — every script supports `--dry-run` to preview changes without modifying the system
 - **`--help` flag** — every script displays usage information with `--help`
 - **`find` instead of globs** — glob patterns (`applesmc.*`) fail in fish shell when called via `sudo bash`; all path discovery uses `find`

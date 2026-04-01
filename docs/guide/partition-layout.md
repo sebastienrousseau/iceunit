@@ -35,14 +35,13 @@ nvme0n1p2 (BTRFS pool)
 After install, update `/etc/fstab` BTRFS entries to use these options for better performance on NVMe:
 
 ```
-UUID=<uuid>  /  btrfs  noatime,compress=zstd:1,space_cache=v2,autodefrag,discard=async,subvol=@  0 0
+UUID=<uuid>  /  btrfs  noatime,compress=zstd:1,space_cache=v2,discard=async,subvol=@  0 0
 ```
 
 Key options explained:
 - `noatime` — don't write file access times (significant NVMe write reduction)
 - `compress=zstd:1` — transparent compression, level 1 (fast, good ratio)
 - `space_cache=v2` — faster free-space lookup
-- `autodefrag` — automatic background defragmentation for small files
 - `discard=async` — asynchronous TRIM (much lower latency than `discard=sync`)
 
 ## ZRAM Swap

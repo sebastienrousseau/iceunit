@@ -326,6 +326,13 @@ export default defineConfig({
     // Parse changelog entries
     const changelogEntries = [
       {
+        title: 'v0.0.2 — April 2026',
+        date: new Date('2026-04-01'),
+        description:
+          'Performance: batch pacman queries, 24h mirror TTL cache, ZRAM-optimised swappiness, NVMe writeback tuning, autodefrag and pcie_aspm removal, Go ring buffer and concurrent pipes. 303 unit tests.',
+        link: `${SITE_URL}/changelog`,
+      },
+      {
         title: 'v1.1.0 — March 2026',
         date: new Date('2026-03-08'),
         description:

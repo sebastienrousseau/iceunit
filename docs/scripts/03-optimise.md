@@ -41,16 +41,16 @@ bash scripts/03-optimise.sh --help
 ## What It Does
 
 ### 1. Kernel Parameters
-Appends to `/etc/kernel/cmdline`: `intel_idle.max_cstate=4`, `snd_hda_intel.power_save=0`, `pcie_aspm=off`, `mem_sleep_default=deep`. Skips any parameter already present.
+Appends to `/etc/kernel/cmdline`: `intel_idle.max_cstate=4`, `snd_hda_intel.power_save=0`, `mem_sleep_default=deep`. Skips any parameter already present.
 
 ### 2. sysctl Rules
-Writes `/etc/sysctl.d/99-macbook-air-2020.conf` with `vm.swappiness=10`, `vm.vfs_cache_pressure=50`, NVMe-friendly writeback intervals, TCP Fast Open, and NMI watchdog disabled.
+Writes `/etc/sysctl.d/99-macbook-air-2020.conf` with `vm.swappiness=133` (optimised for ZRAM), `vm.vfs_cache_pressure=50`, NVMe-friendly writeback intervals (`1500` centisecs), TCP Fast Open, and NMI watchdog disabled.
 
 ### 3. TLP Drop-in Config
 Writes `/etc/tlp.d/10-macbook-air-2020.conf` with Ice Lake CPU tuning, Wi-Fi power management disabled, USB autosuspend disabled, and T2 audio power save disabled.
 
 ### 4. BTRFS Mount Options
-Displays recommended fstab options (`noatime,compress=zstd:1,space_cache=v2,autodefrag,discard=async`). Applies `noatime` live via remount. Starts background defragmentation of `/home`. The root UUID is detected automatically.
+Displays recommended fstab options (`noatime,compress=zstd:1,space_cache=v2,discard=async`). Applies `noatime` live via remount. The root UUID is detected automatically.
 
 ### 5. PipeWire Audio
 Writes `~/.config/pipewire/pipewire.conf.d/10-t2-macbook-audio.conf` with `quantum=1024`, `min-quantum=256`, `max-quantum=2048` at 48 kHz.

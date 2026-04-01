@@ -21,7 +21,7 @@ sudo bash scripts/08-maintenance.sh [--dry-run] [--help]
 
 ## What It Does
 
-1. **System Upgrade** — runs a full `paru -Syu` (or `yay`/`pacman` fallback) as the real user via `runuser`.
+1. **System Upgrade** — ranks mirrors (skipped if mirrorlist is less than 24 hours old), then runs a full `paru -Syu` (or `yay`/`pacman` fallback) as the real user via `runuser`.
 2. **T2 Hardware Health** — read-only checks: `apple_bce` module loaded, `mbpfan` service active, fan speed from sysfs.
 3. **SSD TRIM** — runs `fstrim -va` on all mounted volumes.
 4. **Package Cache Cleanup** — keeps 2 versions of installed packages (`paccache -rk2`) and removes all cached uninstalled packages (`paccache -ruk0`). Skips gracefully if `paccache` is not installed.

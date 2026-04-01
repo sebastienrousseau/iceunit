@@ -35,7 +35,6 @@ Adds the following to `/etc/kernel/cmdline` (read by `limine-entry-tool`):
 |---|---|
 | `intel_idle.max_cstate=4` | Allow efficient C-states while avoiding audio pops |
 | `snd_hda_intel.power_save=0` | Disable HDA power save for T2 audio stability |
-| `pcie_aspm=off` | Prevent PCIe conflicts with the T2 bridge |
 | `mem_sleep_default=deep` | Use deep sleep (S3-equivalent) by default |
 
 ::: info Limine integration
@@ -48,10 +47,10 @@ Writes `/etc/sysctl.d/99-macbook-air-2020.conf`:
 
 | Setting | Value | Rationale |
 |---|---|---|
-| `vm.swappiness` | `10` | ZRAM is 15.4 GB — prefer keeping data in RAM |
+| `vm.swappiness` | `133` | ZRAM is 15.4 GB — high value maximises compressed-RAM utilisation |
 | `vm.vfs_cache_pressure` | `50` | Retain filesystem cache longer |
-| `vm.dirty_writeback_centisecs` | `6000` | Reduce NVMe write frequency for BTRFS |
-| `vm.dirty_expire_centisecs` | `6000` | Match writeback interval |
+| `vm.dirty_writeback_centisecs` | `1500` | Balance NVMe wear with responsiveness for BTRFS |
+| `vm.dirty_expire_centisecs` | `1500` | Match writeback interval |
 | `net.core.netdev_max_backlog` | `4096` | Network performance |
 | `net.ipv4.tcp_fastopen` | `3` | Enable TCP Fast Open (client + server) |
 | `kernel.nmi_watchdog` | `0` | Reduce overhead (nowatchdog already in cmdline) |
@@ -65,7 +64,7 @@ Writes `/etc/tlp.d/10-macbook-air-2020.conf` with Ice Lake-specific settings:
 - **Wi-Fi power management:** disabled (BCM4377b disconnects under power management)
 - **USB autosuspend:** disabled (`USB_AUTOSUSPEND=0`) for T2 BCE bridge stability
 - **Sound power save:** disabled on both AC and battery (prevents T2 audio crackling)
-- **PCIe ASPM:** set to `default` (disabled globally via kernel cmdline)
+- **PCIe ASPM:** `default` on AC, `powersupersave` on battery (managed per-device by TLP for 10-15% battery savings)
 
 ### 4. PipeWire Audio Fix
 
@@ -84,11 +83,11 @@ This increases the audio buffer to prevent xruns (crackling/pops) on the `apple-
 
 ### 5. BTRFS Mount Options
 
-The script displays recommended mount options for `/etc/fstab` but does **not** edit fstab automatically (too risky). It applies `noatime` live via `mount -o remount` and starts a background defragmentation of `/home`.
+The script displays recommended mount options for `/etc/fstab` but does **not** edit fstab automatically (too risky). It applies `noatime` live via `mount -o remount`.
 
 Recommended fstab options:
 ```
-noatime,compress=zstd:1,space_cache=v2,autodefrag,discard=async
+noatime,compress=zstd:1,space_cache=v2,discard=async
 ```
 
 The root UUID is detected automatically via `findmnt`.

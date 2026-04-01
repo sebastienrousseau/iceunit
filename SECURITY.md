@@ -38,7 +38,7 @@ The vault scripts (`00-setup-vault.sh`, `05-mount-vault.sh`, `06-unmount-vault.s
 ### Script Execution
 
 - All scripts that modify system files require `sudo`
-- Scripts follow `set -euo pipefail` — they exit on any error
+- Scripts follow `set -Eeuo pipefail` — they exit on any error, with inherited ERR traps
 - No script sends data to external services (except `02-wifi-firmware.sh install-pkg` which downloads firmware)
 - ShellCheck CI runs on all pull requests to catch common shell scripting issues
 

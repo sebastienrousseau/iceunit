@@ -81,7 +81,7 @@ cachyos-macbook-intel-2020/
 │   ├── 08-maintenance.sh        # Periodic maintenance
 │   └── 99-verify-install.sh     # System health audit
 ├── tests/                       # Unit and integration test suites
-│   ├── *.bats                   # 230 unit tests (bats-core)
+│   ├── *.bats                   # 303 unit tests (bats-core)
 │   ├── Dockerfile.unit          # Unit test container
 │   ├── Dockerfile.integration   # Integration test container
 │   ├── setup-bats.sh            # BATS installation helper
