@@ -167,8 +167,10 @@ package_cache_cleanup() {
 orphan_removal() {
     header "Orphan Removal"
 
-    local -a orphans
-    mapfile -t orphans < <(pacman -Qtdq 2>/dev/null || true)
+    local -a orphans=()
+    while IFS= read -r pkg; do
+        [[ -n "$pkg" ]] && orphans+=("$pkg")
+    done < <(pacman -Qtdq 2>/dev/null || true)
 
     if [[ ${#orphans[@]} -eq 0 ]]; then
         success "No orphaned packages found"

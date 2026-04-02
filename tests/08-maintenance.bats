@@ -39,16 +39,14 @@ teardown() {
 @test "system upgrade: falls back to yay when no paru" {
     rm -f "${MOCK_BIN}/paru"
     # Symlink bash so mock script shebangs (#!/usr/bin/env bash) work
-    ln -sf /usr/bin/bash "${MOCK_BIN}/bash"
+    ln -sf "$(command -v bash)" "${MOCK_BIN}/bash"
 
-    run bash -c "
-        export PATH='${MOCK_BIN}'
-        export HOME='${HOME}'
-        export MOCK_CALLS='${MOCK_CALLS}'
-        export TEST_TEMP='${TEST_TEMP}'
-        source '${SOURCEABLE_SCRIPT}'
-        system_upgrade
-    "
+    local saved_path="$PATH"
+    export PATH="${MOCK_BIN}"
+
+    run system_upgrade
+
+    export PATH="$saved_path"
 
     [ "$status" -eq 0 ]
     assert_mock_called "runuser"
@@ -58,16 +56,14 @@ teardown() {
 @test "system upgrade: falls back to pacman when no AUR helper" {
     rm -f "${MOCK_BIN}/paru"
     rm -f "${MOCK_BIN}/yay"
-    ln -sf /usr/bin/bash "${MOCK_BIN}/bash"
+    ln -sf "$(command -v bash)" "${MOCK_BIN}/bash"
 
-    run bash -c "
-        export PATH='${MOCK_BIN}'
-        export HOME='${HOME}'
-        export MOCK_CALLS='${MOCK_CALLS}'
-        export TEST_TEMP='${TEST_TEMP}'
-        source '${SOURCEABLE_SCRIPT}'
-        system_upgrade
-    "
+    local saved_path="$PATH"
+    export PATH="${MOCK_BIN}"
+
+    run system_upgrade
+
+    export PATH="$saved_path"
 
     [ "$status" -eq 0 ]
     assert_mock_called "pacman"
@@ -171,7 +167,7 @@ teardown() {
     run orphan_removal
 
     [ "$status" -eq 0 ]
-    /usr/bin/grep -qF -- "Rns" "${MOCK_CALLS}/pacman"
+    assert_mock_called_with "pacman" "Rns"
 }
 
 # ── failed_units ─────────────────────────────────────────────────────────────
