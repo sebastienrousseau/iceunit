@@ -17,13 +17,18 @@
 #   directory so it's included in any home backup automatically.
 # =============================================================================
 
-set -euo pipefail
+set -Eeuo pipefail
 
 DRY_RUN=false
 ASSUME_YES=false
 for arg in "$@"; do
     [[ "$arg" == "--dry-run" ]] && DRY_RUN=true
     [[ "$arg" == "--yes" ]] && ASSUME_YES=true
+    [[ "$arg" == "--help" || "$arg" == "-h" ]] && {
+        echo "Usage: bash $0 [--dry-run] [--yes] [--help]"
+        echo "Create a LUKS2 encrypted BTRFS vault at ~/.vault.img."
+        exit 0
+    }
 done
 
 # Wrapper for destructive commands
@@ -112,7 +117,7 @@ create_image() {
     info "Allocating ${VAULT_SIZE} at ${VAULT_IMG}..."
     info "(This may take a moment for large sizes)"
     fallocate -l "$VAULT_SIZE" "$VAULT_IMG" \
-        || dd if=/dev/zero of="$VAULT_IMG" bs=1M count=0 seek="$(echo "$VAULT_SIZE" | numfmt --from=iec)" 2>/dev/null \
+        || dd if=/dev/zero of="$VAULT_IMG" bs=1M count=0 seek="$(( $(echo "$VAULT_SIZE" | numfmt --from=iec) / 1048576 ))" 2>/dev/null \
         || error "Failed to create vault image. Check available disk space."
 
     chmod 600 "$VAULT_IMG"
@@ -163,7 +168,7 @@ initialise_filesystem() {
     sudo mount /dev/mapper/"$MAPPER_NAME" "$MOUNT_POINT"
 
     info "Taking ownership..."
-    sudo chown -R "$REAL_USER:$REAL_USER" "$MOUNT_POINT"
+    sudo chown "$REAL_USER:$REAL_USER" "$MOUNT_POINT"
 
     success "Vault mounted at ${MOUNT_POINT}"
 }
@@ -183,6 +188,22 @@ verify() {
     sudo cryptsetup luksDump "$VAULT_IMG" | grep -E "Version|Cipher|Hash|Label" | sed 's/^/  /'
 }
 
+# ── LUKS header backup ───────────────────────────────────────────────────────
+backup_luks_header() {
+    header "LUKS Header Backup"
+
+    local backup_file="${VAULT_IMG}.header.bak"
+
+    info "Backing up LUKS2 header to ${backup_file}..."
+    info "This backup is critical — if the header is corrupted, ALL data is lost."
+    dryrun sudo cryptsetup luksHeaderBackup "$VAULT_IMG" --header-backup-file "$backup_file"
+    dryrun chmod 600 "$backup_file"
+
+    success "LUKS header backed up to ${backup_file}"
+    warn "Store a copy of this file on a separate device (USB, cloud)."
+    warn "To restore: sudo cryptsetup luksHeaderRestore ${VAULT_IMG} --header-backup-file ${backup_file}"
+}
+
 # ── Post-setup instructions ───────────────────────────────────────────────────
 print_next_steps() {
     header "Setup Complete"
@@ -200,6 +221,7 @@ print_next_steps() {
     echo "  • The vault is NOT auto-mounted at login — unlock it manually"
     echo "  • Never add ${VAULT_IMG} to /etc/fstab (causes boot issues)"
     echo "  • Back up ${VAULT_IMG} regularly — if the file is corrupted, data is lost"
+    echo "  • LUKS header backup saved alongside the vault — copy to external media"
     echo "  • Your passphrase cannot be recovered. Store it in a password manager."
 }
 
@@ -217,6 +239,7 @@ main() {
     format_luks
     initialise_filesystem
     verify
+    backup_luks_header
     print_next_steps
 }
 

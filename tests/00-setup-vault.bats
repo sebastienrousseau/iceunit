@@ -140,6 +140,7 @@ teardown() {
 @test "create_image: errors when both methods fail" {
     mock_command fallocate 1
     mock_command dd 1
+    mock_command numfmt 0 "62914560000"
     VAULT_SIZE="60G"
     VAULT_IMG="$TEST_HOME/.vault.img"
     run create_image
@@ -204,16 +205,25 @@ teardown() {
     [[ "$output" == *"NOT auto-mounted"* ]]
 }
 
+# ── backup_luks_header ──────────────────────────────────────────────────────
+
+@test "backup_luks_header: creates header backup file" {
+    VAULT_IMG="$TEST_HOME/.vault.img"
+    touch "$VAULT_IMG"
+    run backup_luks_header
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"LUKS header backed up"* ]]
+    assert_mock_called_with sudo "cryptsetup luksHeaderBackup"
+}
+
 # ── shebang and standards ───────────────────────────────────────────────────
 
 @test "setup vault: uses #!/usr/bin/env bash" {
-    run head -1 "$SCRIPTS_DIR/00-setup-vault.sh"
-    [[ "$output" == "#!/usr/bin/env bash" ]]
+    assert_shebang "$SCRIPTS_DIR/00-setup-vault.sh"
 }
 
 @test "setup vault: no emoji in output" {
-    run grep -cP '[\x{1F300}-\x{1F9FF}]' "$SCRIPTS_DIR/00-setup-vault.sh"
-    [ "$output" = "0" ]
+    assert_no_emoji "$SCRIPTS_DIR/00-setup-vault.sh"
 }
 
 @test "setup vault: no mount|grep pattern" {

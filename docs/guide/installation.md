@@ -1,5 +1,6 @@
 ---
 description: Step-by-step CachyOS installation on the MacBook Air 2020 using Calamares with dual-boot macOS partition guidance.
+verifiedOn: 2026-04-01
 ---
 
 # Running the Installer
@@ -34,7 +35,11 @@ During the CachyOS install, select the **linux-cachyos** kernel (BORE scheduler)
 
 ## First Boot
 
-After install, the system boots into Limine. Select **CachyOS** from the boot menu.
+After install, the system boots into Limine. See [Bootloader](/guide/bootloader) for configuration and snapshot recovery. Select **CachyOS** from the boot menu.
+
+::: danger Run thermal setup immediately
+Without intervention, the CPU can sustain 100°C at near-idle fan speeds. See [Thermal Setup](/guide/thermal-setup) — this is the most important post-install step.
+:::
 
 The first thing to do after logging in:
 
@@ -46,11 +51,11 @@ sudo pacman -Syu
 sudo pacman -S --needed go make git
 
 # Clone the scripts repo
-git clone https://github.com/sebastienrousseau/cachyos-macbook-intel-2020.git
-cd cachyos-macbook-intel-2020
+git clone https://github.com/sebastienrousseau/iceunit.git
+cd iceunit
 
 # Run the interactive Iceunit (ICU) installer for automated setup
-make install
+sudo make install
 
 # Finally, verify your system health
 make verify

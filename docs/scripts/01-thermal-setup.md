@@ -1,5 +1,6 @@
 ---
 description: 01-thermal-setup.sh installs mbpfan with the correct fan curve for the MacBook Air 2020 Apple SMC on CachyOS.
+verifiedOn: 2026-04-01
 ---
 
 # 01-thermal-setup.sh
@@ -64,5 +65,5 @@ If neither is found, `mbpfan` still works — it reads temperature via `coretemp
 - `lm_sensors` (for the `sensors` verification command)
 
 ::: tip Source
-View the full source on [GitHub](https://github.com/sebastienrousseau/cachyos-macbook-intel-2020/blob/main/scripts/01-thermal-setup.sh).
+View the full source on [GitHub](https://github.com/sebastienrousseau/iceunit/blob/main/scripts/01-thermal-setup.sh).
 :::

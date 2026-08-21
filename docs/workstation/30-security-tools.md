@@ -1,5 +1,6 @@
 ---
 description: Security-focused tooling including SOPS, Age, and Gitleaks, with UFW firewall configuration.
+verifiedOn: 2026-04-01
 ---
 
 # Security Tools
@@ -20,3 +21,7 @@ The `30-security-tools.sh` script hardens the system and installs essential secu
 ```bash
 sudo bash workstation/30-security-tools.sh
 ```
+
+::: tip Source
+View the full source on [GitHub](https://github.com/sebastienrousseau/iceunit/blob/main/workstation/30-security-tools.sh).
+:::

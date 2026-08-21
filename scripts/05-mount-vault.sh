@@ -10,7 +10,7 @@
 #   bash scripts/05-mount-vault.sh [--dry-run] [--help]
 # =============================================================================
 
-set -euo pipefail
+set -Eeuo pipefail
 
 DRY_RUN=false
 ASSUME_YES=false

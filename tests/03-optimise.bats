@@ -14,7 +14,7 @@ setup() {
     # Only mock hardware/root/package commands
     mock_command sysctl 0
     mock_command systemctl 0
-    mock_command pacman 0
+    mock_all_packages_installed
     mock_command mount 0
     mock_command btrfs 0
     mock_command zramctl 0 "zram0 lzo-rle 15.4G 4K 65B 12K 8 [SWAP]"
@@ -22,6 +22,7 @@ setup() {
     mock_command powerprofilesctl 0 "balanced"
     mock_command sleep 0
     mock_command findmnt 0 "test-auto-uuid"
+    mock_command timedatectl 0 "no"
 
     # Create kernel cmdline fixture
     echo "quiet nowatchdog splash rw" > "${TEST_TEMP}/etc/kernel/cmdline"
@@ -43,7 +44,7 @@ teardown() {
 }
 
 @test "kernel params: skips already-present params" {
-    echo "quiet nowatchdog splash rw intel_idle.max_cstate=4 snd_hda_intel.power_save=0 pcie_aspm=off mem_sleep_default=deep" > "${TEST_TEMP}/etc/kernel/cmdline"
+    echo "quiet nowatchdog splash rw intel_idle.max_cstate=4 snd_hda_intel.power_save=0 mem_sleep_default=deep" > "${TEST_TEMP}/etc/kernel/cmdline"
 
     run optimise_kernel_params
 
@@ -63,7 +64,7 @@ teardown() {
     run optimise_kernel_params
 
     [ -f "${TEST_TEMP}/etc/sysctl.d/99-macbook-air-2020.conf" ]
-    grep -q "vm.swappiness = 10" "${TEST_TEMP}/etc/sysctl.d/99-macbook-air-2020.conf"
+    grep -q "vm.swappiness = 133" "${TEST_TEMP}/etc/sysctl.d/99-macbook-air-2020.conf"
     grep -q "vm.vfs_cache_pressure = 50" "${TEST_TEMP}/etc/sysctl.d/99-macbook-air-2020.conf"
     grep -q "kernel.nmi_watchdog = 0" "${TEST_TEMP}/etc/sysctl.d/99-macbook-air-2020.conf"
 }
@@ -230,13 +231,52 @@ teardown() {
     [[ "$output" == *"conflict"* ]] || [[ "$output" == *"Recommended"* ]]
 }
 
+# ── configure_i915 ──────────────────────────────────────────────────────────
+
+@test "i915: writes modprobe config with GUC/HUC" {
+    run configure_i915
+
+    [ "$status" -eq 0 ]
+    [ -f "${TEST_TEMP}/etc/modprobe.d/i915.conf" ]
+    grep -q "enable_guc=3" "${TEST_TEMP}/etc/modprobe.d/i915.conf"
+    grep -q "enable_fbc=1" "${TEST_TEMP}/etc/modprobe.d/i915.conf"
+}
+
+@test "i915: skips if config already exists" {
+    mkdir -p "${TEST_TEMP}/etc/modprobe.d"
+    echo "options i915 enable_guc=3" > "${TEST_TEMP}/etc/modprobe.d/i915.conf"
+
+    run configure_i915
+
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"already exists"* ]]
+}
+
+# ── configure_rtc ──────────────────────────────────────────────────────────
+
+@test "rtc: sets UTC for macOS dual-boot" {
+    mock_command timedatectl 0 "yes"
+
+    run configure_rtc
+
+    [ "$status" -eq 0 ]
+    assert_mock_called "timedatectl"
+    [[ "$output" == *"UTC"* ]]
+}
+
+@test "rtc: skips when already set to UTC" {
+    mock_command timedatectl 0 "no"
+
+    run configure_rtc
+
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"already set to UTC"* ]]
+}
+
 # ── install_recommended_packages ─────────────────────────────────────────────
 
 @test "packages: skips when all installed" {
-    run install_recommended_packages
-
-    [ "$status" -eq 0 ]
-    [[ "$output" == *"already installed"* ]]
+    assert_package_skip install_recommended_packages "already installed"
 }
 
 @test "packages: installs missing packages" {
@@ -250,15 +290,7 @@ teardown() {
 # ── print_summary ────────────────────────────────────────────────────────────
 
 @test "summary: displays applied and skipped items" {
-    APPLIED=("kernel-cmdline" "sysctl" "tlp")
-    SKIPPED=("zram" "btrfs-fstab")
-
-    run print_summary
-
-    [ "$status" -eq 0 ]
-    [[ "$output" == *"kernel-cmdline"* ]]
-    [[ "$output" == *"zram"* ]]
-    [[ "$output" == *"Reboot"* ]]
+    assert_summary_shows_items "kernel-cmdline,sysctl,tlp" "zram,btrfs-fstab"
 }
 
 # ── main execution model ────────────────────────────────────────────────────
@@ -298,11 +330,9 @@ teardown() {
 }
 
 @test "optimise: uses #!/usr/bin/env bash" {
-    run head -1 "$SCRIPTS_DIR/03-optimise.sh"
-    [[ "$output" == "#!/usr/bin/env bash" ]]
+    assert_shebang "$SCRIPTS_DIR/03-optimise.sh"
 }
 
 @test "optimise: no emoji in output" {
-    run grep -cP '[\x{1F300}-\x{1F9FF}]' "$SCRIPTS_DIR/03-optimise.sh"
-    [ "$output" = "0" ]
+    assert_no_emoji "$SCRIPTS_DIR/03-optimise.sh"
 }

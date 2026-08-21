@@ -1,5 +1,6 @@
 ---
 description: Configure Limine with limine-snapper-sync for BTRFS snapshot booting and optional rEFInd dual-boot on the MacBook Air 2020.
+verifiedOn: 2026-04-01
 ---
 
 # Bootloader: Limine
@@ -48,7 +49,7 @@ sudo bash scripts/04-bootloader.sh
 If you prefer a graphical boot picker that auto-detects all OS entries, `04-bootloader.sh` can install rEFInd alongside Limine:
 
 ```bash
-sudo bash scripts/04-bootloader.sh --install-refind
+sudo bash scripts/04-bootloader.sh refind
 ```
 
 rEFInd will scan EFI entries and provide a graphical menu with icons. Limine remains as a fallback.

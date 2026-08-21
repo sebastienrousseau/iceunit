@@ -1,5 +1,6 @@
 ---
 description: Optimise GNOME desktop for maximum productivity by disabling animations and setting focus-mode.
+verifiedOn: 2026-04-01
 ---
 
 # GNOME Productivity
@@ -18,8 +19,8 @@ The `10-gnome-productivity.sh` script applies a set of productivity-focused GNOM
 ## Running
 
 ```bash
-# Usually run as part of the main installer
-make install
+# Run via make target
+make gnome-productivity
 
 # Or run individually
 bash workstation/10-gnome-productivity.sh
@@ -28,3 +29,7 @@ bash workstation/10-gnome-productivity.sh
 ## Note
 
 This script uses `gsettings` and should be run as your normal user (the installer handles this automatically).
+
+::: tip Source
+View the full source on [GitHub](https://github.com/sebastienrousseau/iceunit/blob/main/workstation/10-gnome-productivity.sh).
+:::

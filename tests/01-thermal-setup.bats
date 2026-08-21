@@ -78,13 +78,7 @@ teardown() {
 # ── install_mbpfan ───────────────────────────────────────────────────────────
 
 @test "install_mbpfan: skips if already installed" {
-    # pacman -Q mbpfan succeeds (installed)
-    mock_command pacman 0
-
-    run install_mbpfan
-
-    [ "$status" -eq 0 ]
-    [[ "$output" == *"already installed"* ]]
+    assert_package_skip install_mbpfan "already installed"
 }
 
 @test "install_mbpfan: installs with paru" {
@@ -226,11 +220,9 @@ teardown() {
 # ── shebang and standards ───────────────────────────────────────────────────
 
 @test "thermal setup: uses #!/usr/bin/env bash" {
-    run head -1 "$SCRIPTS_DIR/01-thermal-setup.sh"
-    [[ "$output" == "#!/usr/bin/env bash" ]]
+    assert_shebang "$SCRIPTS_DIR/01-thermal-setup.sh"
 }
 
 @test "thermal setup: no emoji in output" {
-    run grep -cP '[\x{1F300}-\x{1F9FF}]' "$SCRIPTS_DIR/01-thermal-setup.sh"
-    [ "$output" = "0" ]
+    assert_no_emoji "$SCRIPTS_DIR/01-thermal-setup.sh"
 }

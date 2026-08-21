@@ -1,5 +1,6 @@
 ---
 description: 06-unmount-vault.sh unmounts and locks the LUKS2 encrypted code vault, closing the cryptsetup container.
+verifiedOn: 2026-04-01
 ---
 
 # 06-unmount-vault.sh
@@ -50,5 +51,5 @@ Safe to run multiple times. If the vault is not mounted, the unmount step is ski
 - `sudo` access for `umount` and `cryptsetup close`
 
 ::: tip Source
-View the full source on [GitHub](https://github.com/sebastienrousseau/cachyos-macbook-intel-2020/blob/main/scripts/06-unmount-vault.sh).
+View the full source on [GitHub](https://github.com/sebastienrousseau/iceunit/blob/main/scripts/06-unmount-vault.sh).
 :::

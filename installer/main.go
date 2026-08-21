@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/charmbracelet/bubbles/progress"
@@ -21,10 +22,12 @@ type Task struct {
 	Category string
 	Software string
 	Path     string
+	Weight   float64 // Relative duration weight for progress bar accuracy
 }
 
 type model struct {
 	tasks        []Task
+	totalWeight  float64
 	index        int
 	width        int
 	height       int
@@ -35,6 +38,49 @@ type model struct {
 	done         bool
 	finalizing   bool
 	err          error
+	projectRoot  string
+}
+
+// ringLog is a fixed-capacity ring buffer for capturing recent output lines.
+// It prevents unbounded memory growth when scripts emit large volumes of output.
+type ringLog struct {
+	mu    sync.Mutex
+	lines []string
+	cap   int
+	count int
+}
+
+func newRingLog(capacity int) *ringLog {
+	return &ringLog{lines: make([]string, capacity), cap: capacity}
+}
+
+func (r *ringLog) Add(line string) {
+	r.mu.Lock()
+	r.lines[r.count%r.cap] = line
+	r.count++
+	r.mu.Unlock()
+}
+
+// Lines returns all captured lines in chronological order.
+func (r *ringLog) Lines() []string {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if r.count == 0 {
+		return nil
+	}
+	n := r.count
+	if n > r.cap {
+		n = r.cap
+	}
+	result := make([]string, n)
+	start := 0
+	if r.count > r.cap {
+		start = r.count % r.cap
+	}
+	for i := range n {
+		result[i] = r.lines[(start+i)%r.cap]
+	}
+	return result
 }
 
 type taskCompletedMsg struct{ err error }
@@ -63,33 +109,48 @@ func newModel() model {
 	s.Spinner = spinner.Dot
 	s.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("63"))
 
+	root, _ := resolveProjectRoot()
+
+	// Weights reflect approximate relative duration of each task.
+	// Heavy package installs get higher weight; quick config scripts get lower.
 	tasks := []Task{
-		{Category: "System Initialization", Software: "Iceunit Packages", Path: "scripts/00-system-init.sh"},
-		{Category: "Code Vault Creation", Software: "LUKS2 Vault", Path: "scripts/00-setup-vault.sh"},
-		{Category: "Thermal Setup", Software: "mbpfan", Path: "scripts/01-thermal-setup.sh"},
-		{Category: "Wi-Fi Firmware", Software: "BCM4377b Firmware", Path: "scripts/02-wifi-firmware.sh"},
-		{Category: "System Optimisation", Software: "TLP & Kernel Tweaks", Path: "scripts/03-optimise.sh"},
-		{Category: "Bootloader Configuration", Software: "Limine & rEFInd", Path: "scripts/04-bootloader.sh"},
-		{Category: "Unlock Code Vault", Software: "Mounting /root/Code", Path: "scripts/05-mount-vault.sh"},
-		{Category: "Application Suite", Software: "Browsers, Media & Tools", Path: "scripts/07-install-apps.sh"},
-		{Category: "AI Dev Workstation", Software: "Aider, Docker & Ollama", Path: "workstation/00-ai-dev-workstation.sh"},
-		{Category: "GNOME Productivity", Software: "Productivity Tweaks", Path: "workstation/10-gnome-productivity.sh"},
-		{Category: "DevOps Tools", Software: "Kubectl & Terraform", Path: "workstation/20-devops-tools.sh"},
-		{Category: "Security Tools", Software: "Gitleaks & SOPS", Path: "workstation/30-security-tools.sh"},
-		{Category: "Dotfiles Link", Software: "Symbolic Links", Path: "workstation/40-dotfiles-link.sh"},
+		{Category: "System Initialization", Software: "Iceunit Packages", Path: "scripts/00-system-init.sh", Weight: 5.0},
+		{Category: "Code Vault Creation", Software: "LUKS2 Vault", Path: "scripts/00-setup-vault.sh", Weight: 1.0},
+		{Category: "Thermal Setup", Software: "mbpfan", Path: "scripts/01-thermal-setup.sh", Weight: 2.0},
+		{Category: "Wi-Fi Firmware", Software: "BCM4377b Firmware", Path: "scripts/02-wifi-firmware.sh", Weight: 1.0},
+		{Category: "System Optimisation", Software: "TLP & Kernel Tweaks", Path: "scripts/03-optimise.sh", Weight: 2.0},
+		{Category: "Bootloader Configuration", Software: "Limine & rEFInd", Path: "scripts/04-bootloader.sh", Weight: 1.0},
+		{Category: "Unlock Code Vault", Software: "Mounting ~/Code", Path: "scripts/05-mount-vault.sh", Weight: 0.5},
+		{Category: "Application Suite", Software: "Browsers, Media & Tools", Path: "scripts/07-install-apps.sh", Weight: 4.0},
+		{Category: "Periodic Maintenance", Software: "TRIM, Cache & Journal", Path: "scripts/08-maintenance.sh", Weight: 2.0},
+		{Category: "Desktop Foundation", Software: "GNOME, Fonts & Timers", Path: "workstation/05-desktop-base.sh", Weight: 3.0},
+		{Category: "AI Dev Workstation", Software: "Aider, Docker & Ollama", Path: "workstation/00-ai-dev-workstation.sh", Weight: 3.0},
+		{Category: "GNOME Productivity", Software: "Productivity Tweaks", Path: "workstation/10-gnome-productivity.sh", Weight: 1.0},
+		{Category: "DevOps Tools", Software: "Kubectl & Terraform", Path: "workstation/20-devops-tools.sh", Weight: 3.0},
+		{Category: "Security Tools", Software: "Gitleaks & SOPS", Path: "workstation/30-security-tools.sh", Weight: 2.0},
+		{Category: "Dotfiles Link", Software: "Symbolic Links", Path: "workstation/40-dotfiles-link.sh", Weight: 0.5},
+		{Category: "Mise Plugins", Software: "Ollama, Claude & Droid", Path: "workstation/50-mise-plugins.sh", Weight: 2.0},
+	}
+
+	// Pre-compute total weight for progress bar calculation
+	var totalWeight float64
+	for _, t := range tasks {
+		totalWeight += t.Weight
 	}
 
 	return model{
-		tasks:    tasks,
-		spinner:  s,
-		progress: p,
+		tasks:       tasks,
+		totalWeight: totalWeight,
+		spinner:     s,
+		progress:    p,
+		projectRoot: root,
 	}
 }
 
 func (m model) Init() tea.Cmd {
 	return tea.Batch(
 		m.spinner.Tick,
-		executeTask(m.tasks[m.index]),
+		executeTask(m.tasks[m.index], m.projectRoot),
 		m.tickProgress(),
 	)
 }
@@ -122,7 +183,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.taskProgress > 0.99 {
 				m.taskProgress = 0.99
 			}
-			totalPercent := (float64(m.index) + m.taskProgress) / float64(len(m.tasks))
+			totalPercent := m.weightedProgress()
 			return m, tea.Batch(m.progress.SetPercent(totalPercent), m.tickProgress())
 		}
 		return m, nil
@@ -146,11 +207,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.currentPkg = ""
 
 		if m.index < len(m.tasks) {
-			totalPercent := float64(m.index) / float64(len(m.tasks))
+			totalPercent := m.weightedProgress()
 			return m, tea.Batch(
 				m.progress.SetPercent(totalPercent),
 				tea.Printf("%s %s", checkMark, completedStyle.Render(task.Category)),
-				executeTask(m.tasks[m.index]),
+				executeTask(m.tasks[m.index], m.projectRoot),
 			)
 		} else {
 			m.finalizing = true
@@ -173,10 +234,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, cmd
 
 	case progress.FrameMsg:
-		newModel, cmd := m.progress.Update(msg)
-		if pm, ok := newModel.(progress.Model); ok {
-			m.progress = pm
-		}
+		progressModel, cmd := m.progress.Update(msg)
+		m.progress = progressModel.(progress.Model)
 		return m, cmd
 	}
 	return m, nil
@@ -222,11 +281,70 @@ func (m model) View() string {
 	return spin + info + gap + prog + pkgCount
 }
 
-var pInstance *tea.Program
+// weightedProgress returns the overall progress [0.0, 1.0] based on task weights.
+// Heavier tasks (e.g. package installs) consume more of the bar than quick config scripts.
+func (m model) weightedProgress() float64 {
+	var completed float64
+	for i := 0; i < m.index && i < len(m.tasks); i++ {
+		completed += m.tasks[i].Weight
+	}
+	if m.index < len(m.tasks) {
+		completed += m.tasks[m.index].Weight * m.taskProgress
+	}
+	if m.totalWeight == 0 {
+		return 0
+	}
+	return completed / m.totalWeight
+}
 
-func executeTask(task Task) tea.Cmd {
+// checkT2Hardware verifies this is a T2 MacBook before starting the installer.
+// CachyOS does not tag kernels with "t2" — we detect the apple_bce module instead.
+func checkT2Hardware() error {
+	out, err := lsmodCmd()
+	if err != nil {
+		// lsmod failed; skip the check gracefully (e.g. in containers)
+		return nil
+	}
+	if !strings.Contains(string(out), "apple_bce") {
+		return fmt.Errorf(
+			"apple_bce kernel module not loaded.\n" +
+				"  This installer is designed for T2 MacBooks (MacBookAir9,1).\n" +
+				"  If you are on the correct hardware, try: sudo modprobe apple_bce\n" +
+				"  To skip this check, set SKIP_T2_CHECK=1",
+		)
+	}
+	return nil
+}
+
+// resolveProjectRoot returns the project root directory.
+// It resolves relative to the executable's location (installer/ → ../)
+// rather than the current working directory, making it robust regardless
+// of where the binary is invoked from.
+func resolveProjectRoot() (string, error) {
+	exe, err := osExecutable()
+	if err != nil {
+		// Fallback to CWD-based resolution (original behaviour)
+		return filepath.Abs("..")
+	}
+	exe, err = filepath.EvalSymlinks(exe)
+	if err != nil {
+		return filepath.Abs("..")
+	}
+	// exe is inside installer/ — go up one level to project root
+	return filepath.Dir(filepath.Dir(exe)), nil
+}
+
+var (
+	pInstance *tea.Program
+	// Test hooks for dependency injection
+	osExecutable = os.Executable
+	lsmodCmd     = func() ([]byte, error) { return exec.Command("lsmod").Output() }
+)
+
+
+func executeTask(task Task, root string) tea.Cmd {
 	return func() tea.Msg {
-		absPath, _ := filepath.Abs(filepath.Join("..", task.Path))
+		absPath := filepath.Join(root, task.Path)
 		args := append([]string{absPath}, os.Args[1:]...)
 		cmd := exec.Command("bash", args...)
 		cmd.Env = os.Environ()
@@ -238,28 +356,31 @@ func executeTask(task Task) tea.Cmd {
 			return taskCompletedMsg{err: err}
 		}
 
-		var stderrLog strings.Builder
+		log := newRingLog(100)
+		var wg sync.WaitGroup
+		wg.Add(2)
 
-		// Stream output
-		go func() {
-			reader := io.MultiReader(stdout, stderr)
-			scanner := bufio.NewScanner(reader)
+		// Scan a pipe concurrently — avoids the sequential io.MultiReader deadlock
+		scanPipe := func(pipe io.ReadCloser) {
+			defer wg.Done()
+			scanner := bufio.NewScanner(pipe)
 			for scanner.Scan() {
 				line := scanner.Text()
-				// Log to stderr buffer for error reporting
-				stderrLog.WriteString(line + "\n")
-
+				log.Add(line)
 				matches := pacmanRegex.FindStringSubmatch(line)
 				if len(matches) > 2 && pInstance != nil {
 					pInstance.Send(pkgUpdateMsg(fmt.Sprintf("%s %s", matches[2], matches[1])))
 				}
 			}
-		}()
+		}
+		go scanPipe(stdout)
+		go scanPipe(stderr)
 
 		err := cmd.Wait()
+		wg.Wait() // Ensure goroutines finish before reading log
 		if err != nil {
 			var errLines []string
-			allLines := strings.Split(strings.TrimSpace(stderrLog.String()), "\n")
+			allLines := log.Lines()
 			for _, line := range allLines {
 				if strings.Contains(strings.ToLower(line), "error:") {
 					errLines = append(errLines, strings.TrimSpace(line))
@@ -267,7 +388,6 @@ func executeTask(task Task) tea.Cmd {
 			}
 			errMsg := err.Error()
 			if len(errLines) > 0 {
-				// Take last 2 unique error lines if possible
 				errMsg = errLines[len(errLines)-1]
 			} else if len(allLines) > 0 {
 				errMsg = fmt.Sprintf("%v: %s", err, allLines[len(allLines)-1])
@@ -278,14 +398,14 @@ func executeTask(task Task) tea.Cmd {
 	}
 }
 
-func max(a, b int) int {
-	if a > b {
-		return a
-	}
-	return b
-}
-
 func main() {
+	// T2 hardware pre-flight check (skip with SKIP_T2_CHECK=1)
+	if os.Getenv("SKIP_T2_CHECK") != "1" {
+		if err := checkT2Hardware(); err != nil {
+			fmt.Fprintf(os.Stderr, "\n[WARN] %v\n\n", err)
+		}
+	}
+
 	m := newModel()
 	pInstance = tea.NewProgram(m)
 	if _, err := pInstance.Run(); err != nil {

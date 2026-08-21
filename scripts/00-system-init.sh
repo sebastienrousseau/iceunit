@@ -7,6 +7,11 @@ for arg in "$@"; do
     [[ "$arg" == "--dry-run" ]] && DRY_RUN=true
     # shellcheck disable=SC2034
     [[ "$arg" == "--yes" ]] && ASSUME_YES=true
+    [[ "$arg" == "--help" || "$arg" == "-h" ]] && {
+        echo "Usage: sudo bash $0 [--dry-run] [--yes] [--help]"
+        echo "Install all Iceunit core packages via pacman."
+        exit 0
+    }
 done
 
 # Wrapper for destructive commands
@@ -23,17 +28,48 @@ PKGS=(
 )
 
 # ── SMART CHECK ──────────────────────────────────────────────────────────────
-# Identify which packages are actually missing
+# Batch-query installed packages (single fork) then diff against PKGS
+declare -A _INSTALLED
+while IFS= read -r p; do
+    [[ -n "$p" ]] && _INSTALLED["$p"]=1
+done < <(pacman -Qq "${PKGS[@]}" 2>/dev/null)
+
 MISSING_PKGS=()
 for pkg in "${PKGS[@]}"; do
-    if ! pacman -Qq "$pkg" >/dev/null 2>&1; then
-        MISSING_PKGS+=("$pkg")
-    fi
+    [[ -z "${_INSTALLED[$pkg]:-}" ]] && MISSING_PKGS+=("$pkg")
 done
 
 if [ ${#MISSING_PKGS[@]} -eq 0 ]; then
     printf '\033[0;32m[OK]\033[0m All Iceunit packages are already installed. Skipping initialization.\n'
     exit 0
+fi
+
+# ── MIRROR RANKING ───────────────────────────────────────────────────────────
+# Skip ranking if mirrorlist was refreshed within the last 24 hours
+_MIRRORLIST="/etc/pacman.d/mirrorlist"
+_MIRROR_TTL=$((24 * 3600))
+_mirror_fresh=false
+if [[ -f "$_MIRRORLIST" ]]; then
+    _mirror_age=$(( $(date +%s) - $(stat -c %Y "$_MIRRORLIST") ))
+    (( _mirror_age < _MIRROR_TTL )) && _mirror_fresh=true
+fi
+
+if $_mirror_fresh; then
+    printf '\033[0;36m[INFO]\033[0m Mirrorlist is fresh (%dh old) — skipping ranking\n' "$(( _mirror_age / 3600 ))"
+elif command -v cachyos-rate-mirrors &>/dev/null; then
+    printf '\033[0;36m[INFO]\033[0m Ranking mirrors via cachyos-rate-mirrors...\n'
+    dryrun cachyos-rate-mirrors
+    printf '\033[0;32m[OK]\033[0m Mirrors ranked.\n'
+elif command -v rate-mirrors &>/dev/null; then
+    printf '\033[0;36m[INFO]\033[0m Ranking mirrors via rate-mirrors...\n'
+    dryrun bash -c 'rate-mirrors --protocol https arch | sudo tee /etc/pacman.d/mirrorlist > /dev/null'
+    printf '\033[0;32m[OK]\033[0m Mirrors ranked.\n'
+elif command -v reflector &>/dev/null; then
+    printf '\033[0;36m[INFO]\033[0m Ranking mirrors via reflector...\n'
+    dryrun reflector --latest 10 --protocol https --sort rate --save /etc/pacman.d/mirrorlist
+    printf '\033[0;32m[OK]\033[0m Mirrors ranked.\n'
+else
+    printf '\033[1;33m[WARN]\033[0m No mirror ranker found. Install cachyos-rate-mirrors, rate-mirrors, or reflector for faster updates.\n'
 fi
 
 # ── INSTALLATION ──────────────────────────────────────────────────────────────
@@ -44,5 +80,5 @@ if [[ " ${MISSING_PKGS[*]} " =~ " ollama " ]] && [ -d "/usr/share/ollama" ] && !
     dryrun sudo rm -rf /usr/share/ollama
 fi
 
-dryrun sudo pacman -Sy --needed --noconfirm --overwrite '*' "${MISSING_PKGS[@]}"
+dryrun sudo pacman -Sy --needed --noconfirm --overwrite '/usr/share/ollama/*' "${MISSING_PKGS[@]}"
 printf '\033[0;32m[OK]\033[0m System initialization complete.\n'

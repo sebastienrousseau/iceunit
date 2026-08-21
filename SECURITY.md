@@ -38,10 +38,14 @@ The vault scripts (`00-setup-vault.sh`, `05-mount-vault.sh`, `06-unmount-vault.s
 ### Script Execution
 
 - All scripts that modify system files require `sudo`
-- Scripts follow `set -euo pipefail` — they exit on any error
+- Scripts follow `set -Eeuo pipefail` — they exit on any error, with inherited ERR traps
 - No script sends data to external services (except `02-wifi-firmware.sh install-pkg` which downloads firmware)
 - ShellCheck CI runs on all pull requests to catch common shell scripting issues
 
 ## Supported Versions
 
-Only the latest version on the `main` branch is supported. There are no versioned releases.
+Only the latest version on the `main` branch is supported. See the [changelog](https://iceunit.com/changelog) for release history.
+
+### Dotfiles Bootstrap
+
+`bootstrap-dotfiles.sh` clones and executes the `install.sh` from a remote dotfiles repository (`DOTFILES_REPO_URL`). The target repo is user-configurable and its contents are executed without signature or checksum verification. Only use trusted repositories.

@@ -1,13 +1,22 @@
 name: Tests
 
+permissions:
+  contents: read
+
 on:
   push:
     paths:
       - 'scripts/*.sh'
+      - 'workstation/*.sh'
+      - 'mise-plugins/*/bin/*'
+      - 'installer/**'
       - 'tests/**'
   pull_request:
     paths:
       - 'scripts/*.sh'
+      - 'workstation/*.sh'
+      - 'mise-plugins/*/bin/*'
+      - 'installer/**'
       - 'tests/**'
 
 jobs:
@@ -17,13 +26,46 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: ShellCheck
-        uses: ludeeus/action-shellcheck@master
+        uses: ludeeus/action-shellcheck@2.0.0
         with:
-          scandir: './scripts'
+          scandir: './scripts ./workstation ./mise-plugins'
+          additional_files: ''
+          format: gcc
+          severity: warning
+        env:
+          SHELLCHECK_OPTS: '-x'
+
+  go-tests:
+    name: Go Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.24.2'
+          cache-dependency-path: installer/go.sum
+      - name: Vet
+        run: cd installer && go vet ./...
+      - name: Test
+        run: cd installer && go test ./... -v
+
+  gitleaks:
+    name: Secret Scanning
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   unit-tests:
     name: Unit Tests
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
 

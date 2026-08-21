@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+# Install Droid (Factory AI) from a previously downloaded binary.
+# Expected env: ASDF_INSTALL_VERSION, ASDF_INSTALL_PATH, ASDF_DOWNLOAD_PATH
+
+version="${ASDF_INSTALL_VERSION:?ASDF_INSTALL_VERSION is required}"
+install_path="${ASDF_INSTALL_PATH:?ASDF_INSTALL_PATH is required}"
+download_path="${ASDF_DOWNLOAD_PATH:?ASDF_DOWNLOAD_PATH is required}"
+
+mkdir -p "${install_path}/bin"
+cp "${download_path}/droid" "${install_path}/bin/droid"
+chmod +x "${install_path}/bin/droid"
+
+if "${install_path}/bin/droid" --version >/dev/null 2>&1; then
+    echo "Droid ${version} installed successfully."
+else
+    echo "Warning: droid --version check failed, but binary was installed." >&2
+fi

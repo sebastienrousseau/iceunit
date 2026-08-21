@@ -1,4 +1,4 @@
-FROM archlinux:latest
+FROM --platform=linux/amd64 archlinux:latest
 
 # Bootstrap a realistic Arch environment
 RUN pacman-key --init \
@@ -37,6 +37,8 @@ RUN su - testuser -c "fallocate -l 10M /home/testuser/.vault.img"
 
 WORKDIR /repo
 COPY scripts/ ./scripts/
+COPY workstation/ ./workstation/
+COPY mise-plugins/ ./mise-plugins/
 COPY tests/integration/ ./tests/integration/
 
 RUN chown -R testuser:testuser /repo

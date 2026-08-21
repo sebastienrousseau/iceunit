@@ -13,10 +13,17 @@
 #   Kernel:  6.19.x-cachyos  |  Driver: applesmc
 # =============================================================================
 
-set -euo pipefail
+set -Eeuo pipefail
 
 DRY_RUN=false
-for arg in "$@"; do [[ "$arg" == "--dry-run" ]] && DRY_RUN=true; done
+for arg in "$@"; do
+    [[ "$arg" == "--dry-run" ]] && DRY_RUN=true
+    [[ "$arg" == "--help" || "$arg" == "-h" ]] && {
+        echo "Usage: sudo bash $0 [--dry-run] [--help]"
+        echo "Install and configure mbpfan for MacBook Air 2020 thermal control."
+        exit 0
+    }
+done
 
 # Wrapper for destructive commands
 dryrun() {
@@ -81,11 +88,15 @@ install_mbpfan() {
         # AUR helpers must run as normal user, not via sudo
         local aur_user="${SUDO_USER:-$USER}"
         if command -v paru &>/dev/null; then
-            su -c "paru -S --noconfirm mbpfan" "$aur_user"
+            dryrun runuser -l "$aur_user" -- paru -S --noconfirm mbpfan
         elif command -v yay &>/dev/null; then
-            su -c "yay -S --noconfirm mbpfan" "$aur_user"
+            dryrun runuser -l "$aur_user" -- yay -S --noconfirm mbpfan
         else
-            error "No AUR helper found. Install with: paru -S mbpfan"
+            if $DRY_RUN; then
+                info "No AUR helper found — would install mbpfan via paru/yay"
+            else
+                error "No AUR helper found. Install with: paru -S mbpfan"
+            fi
         fi
         success "mbpfan installed"
     fi
@@ -208,11 +219,22 @@ enable_services() {
     header "Enabling Services"
 
     # Restart thermald with new config
-    systemctl restart thermald || warn "thermald restart failed — continuing"
+    dryrun systemctl restart thermald || warn "thermald restart failed — continuing"
 
     # Enable and start mbpfan
-    systemctl enable --now mbpfan
-    sleep 2
+    dryrun systemctl enable --now mbpfan
+
+    if $DRY_RUN; then
+        success "mbpfan would be enabled and started"
+        return 0
+    fi
+
+    # Wait for mbpfan to become active (up to 10 seconds)
+    local attempts=0
+    while ! systemctl is-active mbpfan &>/dev/null && (( attempts < 10 )); do
+        sleep 1
+        (( attempts++ ))
+    done
 
     if systemctl is-active mbpfan &>/dev/null; then
         success "mbpfan is active"
@@ -236,7 +258,11 @@ verify() {
     fi
 
     info "mbpfan service status:"
-    systemctl status mbpfan --no-pager -l | head -15
+    if ! $DRY_RUN; then
+        systemctl status mbpfan --no-pager -l | head -15
+    else
+        info "(skipped in dry-run mode)"
+    fi
 
     info "Current temperatures:"
     sensors 2>/dev/null | grep -E "(Package|Core [0-9]|TCMX|TC0P)" | head -8 || true

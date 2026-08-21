@@ -17,7 +17,7 @@
 #   4. Manage boot order between macOS / CachyOS / other OSes
 # =============================================================================
 
-set -euo pipefail
+set -Eeuo pipefail
 
 DRY_RUN=false
 ASSUME_YES=false
@@ -206,12 +206,12 @@ EOF
     # Set boot order: Limine first, rEFInd second
     info "Setting EFI boot order: Limine → rEFInd → macOS..."
     local limine_id
-    limine_id=$(efibootmgr | grep -i "limine" | grep -oP 'Boot\K[0-9A-F]+' | head -1)
+    limine_id=$(efibootmgr | grep -i "limine" | grep -oE 'Boot[0-9A-F]+' | sed 's/Boot//' | head -1)
     local refind_id
-    refind_id=$(efibootmgr | grep -i "refind" | grep -oP 'Boot\K[0-9A-F]+' | head -1)
+    refind_id=$(efibootmgr | grep -i "refind" | grep -oE 'Boot[0-9A-F]+' | sed 's/Boot//' | head -1)
 
     local macos_id
-    macos_id=$(efibootmgr | grep -i "mac" | grep -oP 'Boot\K[0-9A-Fa-f]+' | head -1)
+    macos_id=$(efibootmgr | grep -i "mac" | grep -oE 'Boot[0-9A-Fa-f]+' | sed 's/Boot//' | head -1)
 
     if [[ -n "$limine_id" ]] && [[ -n "$refind_id" ]]; then
         local boot_order="${limine_id},${refind_id}"
@@ -226,7 +226,7 @@ EOF
     echo ""
     success "rEFInd installed!"
     info "To boot with rEFInd: hold Option (⌥) at startup and select rEFInd"
-    info "Or: sudo efibootmgr -n $(efibootmgr | grep -i refind | grep -oP 'Boot\K[0-9A-F]+' | head -1)"
+    info "Or: sudo efibootmgr -n $(efibootmgr | grep -i refind | grep -oE 'Boot[0-9A-F]+' | sed 's/Boot//' | head -1)"
 }
 
 # ── Manage boot order ─────────────────────────────────────────────────────────
@@ -238,8 +238,8 @@ manage_boot_order() {
 
     # Detect boot entry IDs dynamically
     local limine_boot_id macos_boot_id
-    limine_boot_id=$(efibootmgr | grep -i "limine" | grep -oP 'Boot\K[0-9A-Fa-f]+' | head -1)
-    macos_boot_id=$(efibootmgr | grep -i "mac" | grep -oP 'Boot\K[0-9A-Fa-f]+' | head -1)
+    limine_boot_id=$(efibootmgr | grep -i "limine" | grep -oE 'Boot[0-9A-Fa-f]+' | sed 's/Boot//' | head -1)
+    macos_boot_id=$(efibootmgr | grep -i "mac" | grep -oE 'Boot[0-9A-Fa-f]+' | sed 's/Boot//' | head -1)
 
     echo ""
     echo "Detected entries:"
@@ -268,6 +268,9 @@ manage_boot_order() {
             ;;
         3)
             read -rp "Boot order (comma-separated IDs, e.g. 0001,0080): " order
+            if [[ ! "$order" =~ ^[0-9A-Fa-f]+(,[0-9A-Fa-f]+)*$ ]]; then
+                error "Invalid boot order format. Use comma-separated hex IDs (e.g. 0001,0080)"
+            fi
             efibootmgr -o "$order"
             success "Boot order set"
             ;;

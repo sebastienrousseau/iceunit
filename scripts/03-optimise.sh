@@ -12,13 +12,18 @@
 #   • Sleep: s2idle + deep available
 # =============================================================================
 
-set -euo pipefail
+set -Eeuo pipefail
 
 DRY_RUN=false
 ASSUME_YES=false
 for arg in "$@"; do
     [[ "$arg" == "--dry-run" ]] && DRY_RUN=true
     [[ "$arg" == "--yes" ]] && ASSUME_YES=true
+    [[ "$arg" == "--help" || "$arg" == "-h" ]] && {
+        echo "Usage: sudo bash $0 [--dry-run] [--yes] [--audio-only] [--help]"
+        echo "Apply post-install system optimisations for MacBook Air 2020."
+        exit 0
+    }
 done
 
 # Wrapper for destructive commands
@@ -62,7 +67,7 @@ optimise_kernel_params() {
 
     # Params already present (nowatchdog is already set)
     # We add Ice Lake-specific and T2-specific tweaks
-    local cmdline_params=("intel_idle.max_cstate=4" "snd_hda_intel.power_save=0" "pcie_aspm=off" "mem_sleep_default=deep")
+    local cmdline_params=("intel_idle.max_cstate=4" "snd_hda_intel.power_save=0" "mem_sleep_default=deep")
 
     # Handle cmdline
     local current_cmdline=""
@@ -80,7 +85,11 @@ optimise_kernel_params() {
 
     if [[ ${#new_params[@]} -gt 0 ]]; then
         info "Adding to ${cmdline_file}: ${new_params[*]}"
-        echo "${current_cmdline} ${new_params[*]}" | xargs | sudo tee "$cmdline_file" > /dev/null
+        if $DRY_RUN; then
+            echo "[DRY-RUN] tee $cmdline_file"
+        else
+            printf '%s\n' "${current_cmdline} ${new_params[*]}" | tr -s ' ' | sudo tee "$cmdline_file" > /dev/null
+        fi
         success "Kernel cmdline updated"
         warn "Regenerate Limine entries after this: sudo limine-entry-tool"
         mark_applied "kernel-cmdline"
@@ -91,15 +100,15 @@ optimise_kernel_params() {
 
     # Handle sysctl
     info "Applying sysctl optimisations..."
-    cat > /etc/sysctl.d/99-macbook-air-2020.conf << 'EOF'
+    dryrun tee /etc/sysctl.d/99-macbook-air-2020.conf > /dev/null << 'EOF'
 # MacBook Air 2020 (CachyOS) — sysctl optimisations
-# ZRAM is 15.4G — keep swappiness very low to prefer RAM
-vm.swappiness = 10
+# ZRAM is 15.4G — high swappiness maximises compressed-RAM utilisation
+vm.swappiness = 133
 vm.vfs_cache_pressure = 50
 
-# Writeback tuning for BTRFS on NVMe — reduce wear
-vm.dirty_writeback_centisecs = 6000
-vm.dirty_expire_centisecs = 6000
+# Writeback tuning for BTRFS on NVMe — balance wear vs responsiveness
+vm.dirty_writeback_centisecs = 1500
+vm.dirty_expire_centisecs = 1500
 
 # Network performance
 net.core.netdev_max_backlog = 4096
@@ -108,7 +117,7 @@ net.ipv4.tcp_fastopen = 3
 # Reduce NMI watchdog overhead (nowatchdog already in cmdline)
 kernel.nmi_watchdog = 0
 EOF
-    sysctl --system &>/dev/null
+    dryrun sysctl --system &>/dev/null
     success "sysctl rules applied (/etc/sysctl.d/99-macbook-air-2020.conf)"
     mark_applied "sysctl"
 }
@@ -124,7 +133,7 @@ optimise_tlp() {
     fi
 
     # Write a drop-in config (doesn't overwrite /etc/tlp.conf)
-    cat > /etc/tlp.d/10-macbook-air-2020.conf << 'EOF'
+    dryrun tee /etc/tlp.d/10-macbook-air-2020.conf > /dev/null << 'EOF'
 # TLP drop-in for MacBook Air 2020 (MacBookAir9,1)
 # Intel Core i5-1030NG7 — Ice Lake — 49.9Wh battery
 # Applied on top of /etc/tlp.conf
@@ -149,9 +158,9 @@ NVME_POWER_PM_ON_AC=on
 NVME_POWER_PM_ON_BAT=auto
 
 # ── PCIe ASPM ────────────────────────────────────────────────
-# Set to default — we've disabled in cmdline for T2 stability
+# Per-device ASPM managed by TLP — save 10-15% battery on bat
 PCIE_ASPM_ON_AC=default
-PCIE_ASPM_ON_BAT=default
+PCIE_ASPM_ON_BAT=powersupersave
 
 # ── Wi-Fi (Broadcom BCM4377b) ─────────────────────────────────
 # Power management causes disconnects — disable
@@ -173,8 +182,8 @@ SOUND_POWER_SAVE_ON_BAT=0
 SOUND_POWER_SAVE_CONTROLLER=N
 EOF
 
-    systemctl enable --now tlp 2>/dev/null || true
-    systemctl restart tlp 2>/dev/null || true
+    dryrun systemctl enable --now tlp 2>/dev/null || true
+    dryrun systemctl restart tlp 2>/dev/null || true
     success "TLP service enabled and drop-in written to /etc/tlp.d/10-macbook-air-2020.conf"
     info "Wi-Fi power management disabled (prevents BCM4377b disconnects)"
     info "USB autosuspend disabled (T2 BCE bridge stability)"
@@ -201,7 +210,6 @@ optimise_btrfs() {
   noatime         — Don't update access times (reduces writes ~30%)
   compress=zstd:1 — Level 1 zstd compression (fast + good ratio on code)
   space_cache=v2  — Faster space accounting
-  autodefrag      — Background defragmentation (helps with small files)
   discard=async   — Async TRIM for NVMe longevity
 
 EOF
@@ -210,7 +218,7 @@ EOF
     info "Your current root entry in /etc/fstab should have these options:"
     echo ""
     echo "  UUID=${uuid}  /  btrfs  \\"
-    echo "    rw,noatime,compress=zstd:1,space_cache=v2,autodefrag,discard=async,subvol=/@  0 0"
+    echo "    rw,noatime,compress=zstd:1,space_cache=v2,discard=async,subvol=/@  0 0"
     echo ""
     info "To apply: sudo nano /etc/fstab and update the root and subvolume mount lines"
     info "After editing: sudo mount -o remount,noatime,compress=zstd:1 /"
@@ -218,13 +226,18 @@ EOF
 
     # Apply live (non-persistent) optimisations now
     info "Applying live BTRFS optimisations (no fstab edit needed)..."
-    if mount -o remount,noatime / 2>/dev/null; then
-        success "noatime applied live"
+    if ! $DRY_RUN; then
+        if mount -o remount,noatime / 2>/dev/null; then
+            success "noatime applied live"
+        else
+            warn "Could not remount"
+        fi
+        btrfs filesystem defragment -r /home &>/dev/null &
+        info "Background defragmentation started for /home"
     else
-        warn "Could not remount"
+        echo "[DRY-RUN] mount -o remount,noatime /"
+        echo "[DRY-RUN] btrfs filesystem defragment -r /home"
     fi
-    btrfs filesystem defragment -r /home &>/dev/null &
-    info "Background defragmentation started for /home"
 }
 
 # ── 4. Apple T2 Audio stability ───────────────────────────────────────────────
@@ -246,7 +259,7 @@ optimise_audio() {
         return
     fi
 
-    cat > "$conf_file" << 'EOF'
+    dryrun tee "$conf_file" > /dev/null << 'EOF'
 # PipeWire config for Apple T2 Audio — MacBook Air 2020
 # Reduces audio crackling and pops common with apple-bce driver
 context.properties = {
@@ -276,17 +289,21 @@ optimise_sleep() {
 
     # Confirm deep sleep is default
     local current_sleep
-    current_sleep=$(grep -oP '\[\K[^\]]+' /sys/power/mem_sleep 2>/dev/null || true)
+    current_sleep=$(sed -n 's/.*\[\([^]]*\)\].*/\1/p' /sys/power/mem_sleep 2>/dev/null || true)
     if [[ "$current_sleep" == "deep" ]]; then
         success "Deep sleep (S3-like via s2idle) already default — good"
     else
         info "Setting deep sleep as default..."
-        echo deep | sudo tee /sys/power/mem_sleep > /dev/null
+        if ! $DRY_RUN; then
+            echo deep | sudo tee /sys/power/mem_sleep > /dev/null
+        else
+            echo "[DRY-RUN] tee /sys/power/mem_sleep"
+        fi
         success "Deep sleep enabled"
     fi
 
     # Write a suspend hook to safely handle T2 quirks
-    cat > /etc/systemd/system/macbook-suspend-fix.service << 'EOF'
+    dryrun tee /etc/systemd/system/macbook-suspend-fix.service > /dev/null << 'EOF'
 # Workaround for T2 apple-bce driver issues on resume
 # Some users see keyboard/trackpad unresponsive after suspend
 [Unit]
@@ -302,8 +319,8 @@ RemainAfterExit=yes
 WantedBy=suspend.target
 EOF
 
-    systemctl daemon-reload || true
-    systemctl enable macbook-suspend-fix.service || true
+    dryrun systemctl daemon-reload || true
+    dryrun systemctl enable macbook-suspend-fix.service || true
     success "Suspend resume fix service installed"
     info "This reloads apple-bce on wake to restore keyboard/trackpad if they freeze"
     mark_applied "sleep-suspend"
@@ -353,7 +370,55 @@ check_power_profiles() {
     mark_skipped "power-profiles (manual decision required)"
 }
 
-# ── 8. Useful packages ────────────────────────────────────────────────────────
+# ── 8. Intel i915 GUC/HUC firmware loading ────────────────────────────────────
+configure_i915() {
+    header "Intel Iris Plus Graphics (GUC/HUC)"
+
+    local conf_file="/etc/modprobe.d/i915.conf"
+
+    if [[ -f "$conf_file" ]] && grep -q "enable_guc" "$conf_file" 2>/dev/null; then
+        skip "i915 GUC/HUC config already exists at ${conf_file}"
+        mark_skipped "i915-guc-huc"
+        return
+    fi
+
+    info "Enabling GUC/HUC firmware loading for Ice Lake (Iris Plus G7)..."
+    dryrun tee "$conf_file" > /dev/null << 'EOF'
+# Intel Iris Plus G7 (Ice Lake) — enable GuC/HuC firmware offloading
+# GUC: GPU microcontroller for scheduling — reduces CPU overhead
+# HUC: HEVC/H.265 decode offloading — improves video playback efficiency
+# FBC: Frame buffer compression — saves memory bandwidth
+options i915 enable_guc=3 enable_fbc=1
+EOF
+
+    success "i915 GUC/HUC config written to ${conf_file}"
+    warn "Reboot required to load GUC/HUC firmware"
+    mark_applied "i915-guc-huc"
+}
+
+# ── 9. RTC UTC (dual-boot clock sync) ────────────────────────────────────────
+configure_rtc() {
+    header "RTC Clock Sync (Dual-Boot)"
+
+    # macOS stores UTC in the hardware clock. Linux should also use UTC
+    # to prevent the clock jumping when switching between OSes.
+    local current_rtc
+    current_rtc=$(timedatectl show --property=LocalRTC --value 2>/dev/null || echo "unknown")
+
+    if [[ "$current_rtc" == "no" ]]; then
+        success "RTC already set to UTC — matches macOS, dual-boot clock sync OK"
+        mark_skipped "rtc-utc"
+        return
+    fi
+
+    info "Setting hardware clock to UTC for macOS/CachyOS dual-boot..."
+    info "macOS uses UTC for the hardware clock — Linux must match to avoid clock drift."
+    dryrun timedatectl set-local-rtc 0 --adjust-system-clock
+    success "RTC set to UTC"
+    mark_applied "rtc-utc"
+}
+
+# ── 10. Useful packages ───────────────────────────────────────────────────────
 install_recommended_packages() {
     header "Recommended Packages"
 
@@ -367,9 +432,14 @@ install_recommended_packages() {
         "cpupower"          # CPU frequency scaling tool
     )
 
+    declare -A _inst
+    while IFS= read -r p; do
+        [[ -n "$p" ]] && _inst["$p"]=1
+    done < <(pacman -Qq "${packages[@]}" 2>/dev/null)
+
     local to_install=()
     for pkg in "${packages[@]}"; do
-        if ! pacman -Q "$pkg" &>/dev/null; then
+        if [[ -z "${_inst[$pkg]:-}" ]]; then
             to_install+=("$pkg")
         else
             skip "${pkg} (already installed)"
@@ -378,7 +448,7 @@ install_recommended_packages() {
 
     if [[ ${#to_install[@]} -gt 0 ]]; then
         info "Installing: ${to_install[*]}"
-        pacman -S --noconfirm "${to_install[@]}"
+        dryrun pacman -S --noconfirm "${to_install[@]}"
         success "Packages installed"
         mark_applied "recommended-packages"
     else
@@ -404,7 +474,7 @@ print_summary() {
 
     echo ""
     echo -e "${BOLD}Next steps:${RESET}"
-    echo "  1. Reboot to apply kernel cmdline changes"
+    echo "  1. Reboot to apply kernel cmdline and i915 GUC/HUC changes"
     echo "  2. Run: systemctl --user restart pipewire pipewire-pulse"
     echo "  3. Review TLP vs power-profiles-daemon conflict (see above)"
     echo "  4. Update /etc/fstab BTRFS mount options (see above)"
@@ -427,6 +497,8 @@ main() {
         optimise_tlp
         optimise_btrfs
         optimise_sleep
+        configure_i915
+        configure_rtc
         install_recommended_packages
         verify_zram
         check_power_profiles

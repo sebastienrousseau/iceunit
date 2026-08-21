@@ -99,15 +99,11 @@ teardown() {
 # ── Uses env bash shebang ────────────────────────────────────────────────────
 
 @test "mount vault: uses #!/usr/bin/env bash shebang" {
-    run head -1 "$SCRIPTS_DIR/05-mount-vault.sh"
-    [[ "$output" == "#!/usr/bin/env bash" ]]
+    assert_shebang "$SCRIPTS_DIR/05-mount-vault.sh"
 }
 
-# ── No emoji in output ───────────────────────────────────────────────────────
-
 @test "mount vault: no emoji in output" {
-    run grep -cP '[\x{1F300}-\x{1F9FF}]' "$SCRIPTS_DIR/05-mount-vault.sh"
-    [ "$output" = "0" ]
+    assert_no_emoji "$SCRIPTS_DIR/05-mount-vault.sh"
 }
 
 # ── Non-recursive chown ─────────────────────────────────────────────────────

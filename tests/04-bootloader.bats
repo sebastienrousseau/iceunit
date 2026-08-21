@@ -31,6 +31,14 @@ teardown() {
     common_teardown
 }
 
+# ── require_root ─────────────────────────────────────────────────────────────
+
+@test "require_root: passes when EUID is 0" {
+    # In the sourced script, require_root is neutered to 'true'
+    run require_root
+    [ "$status" -eq 0 ]
+}
+
 # ── show_status ──────────────────────────────────────────────────────────────
 
 @test "status: shows boot configuration" {
@@ -242,11 +250,9 @@ teardown() {
 # ── shebang and standards ───────────────────────────────────────────────────
 
 @test "bootloader: uses #!/usr/bin/env bash" {
-    run head -1 "$SCRIPTS_DIR/04-bootloader.sh"
-    [[ "$output" == "#!/usr/bin/env bash" ]]
+    assert_shebang "$SCRIPTS_DIR/04-bootloader.sh"
 }
 
 @test "bootloader: no emoji in output" {
-    run grep -cP '[\x{1F300}-\x{1F9FF}]' "$SCRIPTS_DIR/04-bootloader.sh"
-    [ "$output" = "0" ]
+    assert_no_emoji "$SCRIPTS_DIR/04-bootloader.sh"
 }

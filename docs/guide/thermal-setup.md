@@ -1,5 +1,6 @@
 ---
 description: Fix MacBook Air 2020 thermal throttling on CachyOS by installing mbpfan for Apple SMC fan control via the APP0001:00 ACPI path.
+verifiedOn: 2026-04-01
 ---
 
 # Thermal Setup
@@ -46,6 +47,7 @@ sudo bash scripts/01-thermal-setup.sh
 | Below 55°C | 2700 RPM (near-silent) |
 | 55–70°C | Linear ramp to 4500 RPM |
 | 70–80°C | Ramp to 6500 RPM |
+| 80–85°C | 6500 → 8000 RPM |
 | Above 85°C | 8000 RPM (maximum) |
 
 ## Monitoring

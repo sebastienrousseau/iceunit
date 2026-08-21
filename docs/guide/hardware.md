@@ -1,5 +1,6 @@
 ---
 description: Hardware specifications for the MacBook Air 2020 including Intel Ice Lake CPU, Apple T2 chip, BCM4377b Wi-Fi, and ACPI fan path.
+verifiedOn: 2026-04-01
 ---
 
 # Hardware Specifications
@@ -45,10 +46,10 @@ This is why `thermald` alone doesn't control the fan correctly — it expects th
 
 ### apple_bce Module
 
-`apple_bce` is compiled **directly into** the CachyOS kernel (`CONFIG_APPLE_BCE=y`), not as a loadable module. This means:
+`apple_bce` is available as a loadable kernel module on CachyOS. This means:
 
-- `modprobe apple-bce` will always fail with "module not found"
-- `lsmod | grep apple_bce` will show it as active (it's always loaded)
+- `lsmod | grep apple_bce` confirms it is loaded
+- `modprobe -r apple_bce` / `modprobe apple_bce` can be used to reload it (useful after suspend/resume issues)
 - Keyboard, trackpad, and audio work from first boot without any extra steps
 
 ### Wi-Fi Firmware
@@ -60,3 +61,4 @@ Firmware files for this hardware (board ID: **fiji**):
 - `brcmfmac4377b3-pcie.apple,fiji.clm_blob`
 - `brcmfmac4377b3-pcie.apple,fiji.txcap_blob`
 - `brcmbt4377b3-apple,formosa.bin` (Bluetooth)
+- `brcmbt4377b3-apple,formosa.ptb` (Bluetooth calibration data)

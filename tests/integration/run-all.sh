@@ -45,11 +45,55 @@ run_test "06-unmount-vault: --help" \
 
 # ── Dry-run tests (exercise code paths without system changes) ───────────────
 
+run_test "00-system-init: --dry-run" \
+    bash scripts/00-system-init.sh --dry-run
+
+run_test "01-thermal-setup: --dry-run" \
+    sudo bash scripts/01-thermal-setup.sh --dry-run
+
+run_test "03-optimise: --dry-run" \
+    bash scripts/03-optimise.sh --dry-run
+
 run_test "05-mount-vault: --dry-run" \
     bash scripts/05-mount-vault.sh --dry-run
 
 run_test "06-unmount-vault: --dry-run" \
     bash scripts/06-unmount-vault.sh --dry-run
+
+run_test "07-install-apps: --dry-run" \
+    bash scripts/07-install-apps.sh --dry-run
+
+run_test "08-maintenance: --help" \
+    bash scripts/08-maintenance.sh --help
+
+run_test "08-maintenance: --dry-run" \
+    sudo bash scripts/08-maintenance.sh --dry-run
+
+# ── Workstation dry-run tests ────────────────────────────────────────────────
+
+run_test "w05-desktop-base: --help" \
+    bash workstation/05-desktop-base.sh --help
+
+run_test "w05-desktop-base: --dry-run" \
+    bash workstation/05-desktop-base.sh --dry-run
+
+run_test "w00-ai-dev-workstation: --dry-run" \
+    bash workstation/00-ai-dev-workstation.sh --dry-run
+
+run_test "w10-gnome-productivity: --dry-run" \
+    bash workstation/10-gnome-productivity.sh --dry-run
+
+run_test "w20-devops-tools: --dry-run" \
+    bash workstation/20-devops-tools.sh --dry-run
+
+run_test "w30-security-tools: --dry-run" \
+    bash workstation/30-security-tools.sh --dry-run
+
+run_test "w40-dotfiles-link: --dry-run" \
+    bash workstation/40-dotfiles-link.sh --dry-run
+
+run_test "w50-mise-plugins: --dry-run" \
+    bash workstation/50-mise-plugins.sh --dry-run
 
 # ── Results ──────────────────────────────────────────────────────────────────
 

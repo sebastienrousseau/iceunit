@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+# Install Ollama from a previously downloaded archive.
+# Expected env: ASDF_INSTALL_VERSION, ASDF_INSTALL_PATH, ASDF_DOWNLOAD_PATH
+
+version="${ASDF_INSTALL_VERSION:?ASDF_INSTALL_VERSION is required}"
+install_path="${ASDF_INSTALL_PATH:?ASDF_INSTALL_PATH is required}"
+download_path="${ASDF_DOWNLOAD_PATH:?ASDF_DOWNLOAD_PATH is required}"
+
+mkdir -p "${install_path}/bin"
+
+os="$(uname -s | tr '[:upper:]' '[:lower:]')"
+
+case "$os" in
+    linux)
+        arch="$(uname -m)"
+        [[ "$arch" == "x86_64" ]] && arch="amd64"
+        [[ "$arch" == "aarch64" ]] && arch="arm64"
+        archive="${download_path}/ollama-linux-${arch}.tgz"
+        tar -xzf "$archive" -C "${install_path}/bin" --strip-components=1 2>/dev/null \
+            || tar -xzf "$archive" -C "${install_path}/bin"
+        ;;
+    darwin)
+        archive="${download_path}/Ollama-darwin.zip"
+        unzip -qo "$archive" -d "${install_path}/bin"
+        ;;
+    *)
+        echo "Unsupported OS: $os" >&2
+        exit 1
+        ;;
+esac
+
+chmod +x "${install_path}/bin/ollama" 2>/dev/null || true
+
+# Verify installation
+if "${install_path}/bin/ollama" --version >/dev/null 2>&1; then
+    echo "Ollama ${version} installed successfully."
+else
+    echo "Warning: ollama --version check failed, but binary was extracted." >&2
+fi

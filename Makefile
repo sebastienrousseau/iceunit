@@ -1,6 +1,8 @@
 .PHONY: help install bootstrap lint test test-go test-docker test-integration \
        test-all verify docs docs-build docs-preview clean \
-       init vault thermal wifi optimise bootloader mount unmount apps
+       init vault thermal wifi optimise bootloader mount unmount apps maintenance \
+       backup auto-fix \
+       desktop ai-dev gnome-tweaks devops security dotfiles mise-plugins
 
 SHELL := /bin/bash
 
@@ -54,10 +56,42 @@ unmount: ## Lock and unmount code vault (06-unmount-vault.sh)
 apps: ## Standard application suite (07-install-apps.sh)
 	bash scripts/07-install-apps.sh $(FLAGS)
 
+maintenance: ## Periodic maintenance (08-maintenance.sh)
+	sudo bash scripts/08-maintenance.sh $(FLAGS)
+
+backup: ## Back up Wi-Fi/BT firmware (02-wifi-firmware.sh backup)
+	bash scripts/02-wifi-firmware.sh backup
+
+auto-fix: ## Verify and auto-fix failed checks (99-verify-install.sh --auto-fix)
+	sudo bash scripts/99-verify-install.sh --auto-fix
+
+# ── Workstation (run individually, supports DRY_RUN=1) ───────────────────────
+
+desktop: ## Desktop foundation — GNOME, fonts, timers (05-desktop-base.sh)
+	sudo bash workstation/05-desktop-base.sh $(FLAGS)
+
+ai-dev: ## AI/LLM & developer stack (00-ai-dev-workstation.sh)
+	sudo bash workstation/00-ai-dev-workstation.sh $(FLAGS)
+
+gnome-tweaks: ## GNOME productivity tweaks (10-gnome-productivity.sh)
+	bash workstation/10-gnome-productivity.sh $(FLAGS)
+
+devops: ## DevOps & cloud-native tools (20-devops-tools.sh)
+	sudo bash workstation/20-devops-tools.sh $(FLAGS)
+
+security: ## Firewall & secrets hardening (30-security-tools.sh)
+	sudo bash workstation/30-security-tools.sh $(FLAGS)
+
+dotfiles: ## Link dotfiles symlinks (40-dotfiles-link.sh)
+	bash workstation/40-dotfiles-link.sh $(FLAGS)
+
+mise-plugins: ## Mise plugin infrastructure for AI tools (50-mise-plugins.sh)
+	bash workstation/50-mise-plugins.sh $(FLAGS)
+
 # ── Lint ─────────────────────────────────────────────────────────────────────
 
 lint: ## Run ShellCheck on all scripts and Go lint
-	shellcheck scripts/*.sh workstation/*.sh
+	shellcheck scripts/*.sh workstation/*.sh mise-plugins/*/bin/*
 	cd installer && go vet ./... && go fmt ./...
 
 # ── Test ─────────────────────────────────────────────────────────────────────

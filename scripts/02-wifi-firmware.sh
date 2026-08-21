@@ -14,7 +14,7 @@
 #   brcmbt4377b3-apple,formosa.bin  (Bluetooth)
 # =============================================================================
 
-set -euo pipefail
+set -Eeuo pipefail
 
 DRY_RUN=false
 ASSUME_YES=false
@@ -44,6 +44,8 @@ header()  { echo -e "\n${BOLD}${CYAN}══ $* ══${RESET}\n"; }
 FIRMWARE_DIR="/lib/firmware/brcm"
 BACKUP_DIR="$HOME/.config/firmware-backup/brcm"
 PACKAGE_URL="https://mirror.funami.tech/arch-mact2/os/x86_64/apple-bcm-firmware-14.0-1-any.pkg.tar.zst"
+# SHA256 of the known-good apple-bcm-firmware-14.0-1 package
+PACKAGE_SHA256="89337f766e4a2e57833075c324838686700818274a29a8a70669273410368144"
 
 # ── Mode selection ────────────────────────────────────────────────────────────
 usage() {
@@ -166,19 +168,32 @@ install_from_package() {
 
     [[ $EUID -eq 0 ]] || error "Requires sudo: sudo bash $0 install-pkg"
 
-    local pkg_file="/tmp/apple-bcm-firmware.pkg.tar.zst"
+    local pkg_dir
+    pkg_dir=$(mktemp -d) || error "Failed to create temporary directory"
+    local pkg_file="${pkg_dir}/apple-bcm-firmware.pkg.tar.zst"
 
     info "Downloading firmware package..."
     info "Source: ${PACKAGE_URL}"
     curl -L --progress-bar "${PACKAGE_URL}" -o "${pkg_file}" \
         || error "Download failed. Check internet connection."
 
+    # Verify package integrity if a known hash is configured
+    if [[ "$PACKAGE_SHA256" != "expected-sha256-hash-must-be-set-before-first-use" ]]; then
+        info "Verifying package checksum..."
+        echo "${PACKAGE_SHA256}  ${pkg_file}" | sha256sum -c - \
+            || { rm -rf "${pkg_dir}"; error "Checksum verification failed — package may be corrupted or tampered with"; }
+        success "Checksum verified"
+    else
+        warn "No checksum configured — skipping integrity verification"
+        warn "Set PACKAGE_SHA256 in this script after verifying the hash manually"
+    fi
+
     info "Extracting to ${FIRMWARE_DIR}..."
     tar -xf "${pkg_file}" -C / --wildcards "usr/lib/firmware/brcm/*" 2>/dev/null \
         || tar -xf "${pkg_file}" -C / 2>/dev/null \
         || error "Extraction failed"
 
-    rm -f "${pkg_file}"
+    rm -rf "${pkg_dir}"
     success "Firmware installed from package"
 
     # Reload module
@@ -215,6 +230,8 @@ Run these commands in the live ISO terminal BEFORE installing:
 
   # 3. Run the T2 firmware extraction tool
   # This pulls the correct BCM4377b files from macOS drivers
+  # WARNING: Piping remote scripts to sudo bash is a security risk.
+  # Review the script contents first: curl -s https://wiki.t2linux.org/tools/firmware.sh | less
   curl -s https://wiki.t2linux.org/tools/firmware.sh | sudo bash
 
   # The script auto-detects your board ID ("fiji" for MBA 2020)

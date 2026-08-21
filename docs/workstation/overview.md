@@ -10,15 +10,17 @@ In addition to the core hardware scripts, the repository includes a suite of wor
 
 | Script | Purpose | Status | Run As | Docs |
 |---|---|---|---|---|
+| [`05-desktop-base.sh`](/workstation/05-desktop-base) | Desktop Foundation | Recommended | `sudo` | [Reference](/workstation/05-desktop-base) |
 | [`00-ai-dev-workstation.sh`](/workstation/00-ai-dev-workstation) | AI/LLM & Dev Stack | Optional | `sudo` | [Reference](/workstation/00-ai-dev-workstation) |
 | [`10-gnome-productivity.sh`](/workstation/10-gnome-productivity) | GNOME Speed & UI Tweaks | Optional | User | [Reference](/workstation/10-gnome-productivity) |
 | [`20-devops-tools.sh`](/workstation/20-devops-tools) | K8s & Terraform Stack | Optional | `sudo` | [Reference](/workstation/20-devops-tools) |
 | [`30-security-tools.sh`](/workstation/30-security-tools) | Firewall & Secrets | Optional | `sudo` | [Reference](/workstation/30-security-tools) |
 | [`40-dotfiles-link.sh`](/workstation/40-dotfiles-link) | Symbolic Config Links | Optional | User | [Reference](/workstation/40-dotfiles-link) |
+| [`50-mise-plugins.sh`](/workstation/50-mise-plugins) | Mise Plugin Infrastructure | Optional | User | [Reference](/workstation/50-mise-plugins) |
 
 ## Integration
 
-All workstation scripts are integrated into the primary **Iceunit (ICU) Installer**. When you run `sudo make install`, these modules are executed in sequence following the hardware optimizations.
+Workstation scripts run independently via their Makefile targets (e.g., `make ai-dev`, `make mise-plugins`). The interactive Iceunit installer (`make install`) handles core hardware scripts only. Run workstation modules individually or in sequence as needed.
 
 ## Design Principles
 

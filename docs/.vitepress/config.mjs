@@ -12,7 +12,7 @@ const OG_IMAGE_PATH = '/og-image.png'
 const OG_IMAGE_ALT =
   'CachyOS on MacBook Air 2020 — installation and optimisation guide'
 const REPO_URL =
-  'https://github.com/sebastienrousseau/cachyos-macbook-intel-2020'
+  'https://github.com/sebastienrousseau/iceunit'
 const AUTHOR = 'Sebastien Rousseau'
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
@@ -95,7 +95,7 @@ function extractFaqFromContent(content) {
 /**
  * Generate JSON-LD structured data objects for a page.
  */
-function generateJsonLd({ pageType, title, description, canonicalUrl, page, content }) {
+function generateJsonLd({ pageType, title, description, canonicalUrl, page, content, verifiedOn }) {
   const schemas = []
 
   // WebSite schema (home page only)
@@ -128,6 +128,10 @@ function generateJsonLd({ pageType, title, description, canonicalUrl, page, cont
   if (pageType === 'script') {
     mainSchema.programmingLanguage = 'Bash'
     mainSchema.runtimePlatform = 'Linux'
+  }
+
+  if (verifiedOn && mainSchema['@type'] === 'TechArticle') {
+    mainSchema.dateVerified = verifiedOn
   }
 
   schemas.push(mainSchema)
@@ -298,6 +302,7 @@ export default defineConfig({
       canonicalUrl,
       page: pagePath,
       content: context.content,
+      verifiedOn: pageData.frontmatter?.verifiedOn,
     })
 
     for (const schema of schemas) {
@@ -319,18 +324,32 @@ export default defineConfig({
       id: SITE_URL,
       link: SITE_URL,
       language: 'en-US',
-      copyright: `Copyright © 2026 IceUnit (ICU)`,
+      copyright: `Copyright © ${new Date().getFullYear()} IceUnit (ICU)`,
       author: { name: AUTHOR, link: SITE_URL },
     })
 
     // Parse changelog entries
     const changelogEntries = [
       {
+        title: 'v0.0.2 — April 2026',
+        date: new Date('2026-04-01'),
+        description:
+          'Performance: batch pacman queries, 24h mirror TTL cache, ZRAM-optimised swappiness, NVMe writeback tuning, autodefrag and pcie_aspm removal, Go ring buffer and concurrent pipes. 303 unit tests.',
+        link: `${SITE_URL}/changelog#v0-0-2`,
+      },
+      {
+        title: 'v1.1.0 — March 2026',
+        date: new Date('2026-03-08'),
+        description:
+          'Added --dry-run and --help flags, 230 unit tests, Docker-based CI, mise plugin infrastructure, and security hardening.',
+        link: `${SITE_URL}/changelog#v1-1-0`,
+      },
+      {
         title: 'v1.0.0 — March 2026',
         date: new Date('2026-03-01'),
         description:
           'Initial public release. All scripts field-tested on MacBook Air 2020 (MacBookAir9,1) running CachyOS kernel 6.19.x.',
-        link: `${SITE_URL}/changelog`,
+        link: `${SITE_URL}/changelog#v1-0-0`,
       },
     ]
 
@@ -462,6 +481,7 @@ export default defineConfig({
               link: '/scripts/06-unmount-vault',
             },
             { text: '07 · Install Apps', link: '/scripts/07-install-apps' },
+            { text: '08 · Maintenance', link: '/scripts/08-maintenance' },
             { text: '99 · Verify Install', link: '/scripts/99-verify-install' },
           ],
         },
@@ -472,11 +492,13 @@ export default defineConfig({
           text: 'Workstation',
           items: [
             { text: 'Overview', link: '/workstation/overview' },
+            { text: '05 · Desktop Base', link: '/workstation/05-desktop-base' },
             { text: '00 · AI Dev Stack', link: '/workstation/00-ai-dev-workstation' },
             { text: '10 · GNOME Speed', link: '/workstation/10-gnome-productivity' },
             { text: '20 · DevOps Tools', link: '/workstation/20-devops-tools' },
             { text: '30 · Security Tools', link: '/workstation/30-security-tools' },
             { text: '40 · Dotfiles Link', link: '/workstation/40-dotfiles-link' },
+            { text: '50 · Mise Plugins', link: '/workstation/50-mise-plugins' },
           ],
         },
       ],
@@ -500,7 +522,7 @@ export default defineConfig({
     footer: {
       message:
         'Released under the MIT License. <a href="/accessibility">Accessibility</a> · <a href="/privacy">Privacy</a>',
-      copyright: 'Copyright © 2026 IceUnit (ICU)',
+      copyright: `Copyright © ${new Date().getFullYear()} IceUnit (ICU)`,
     },
 
     // ── Social links ──────────────────────────────────────────────────────
